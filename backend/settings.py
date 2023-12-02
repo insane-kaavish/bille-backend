@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,8 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = os.environ.get('SECRET_KEY')
-SECRET_KEY = 'django-insecure-bzc0a!dygfm#p72q(5nj1f#v35ug-!)2pz@=4csr5e%6i%l-(y'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -91,9 +93,22 @@ REST_FRAMEWORK = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'NAME': os.environ.get('DB_NAME'),
+        'ENFORCE_SCHEMA': os.environ.get('DB_SCHEMA', False),
+        'CLIENT': {
+            'host': os.environ.get('MONGO_CONNECTION'),
+            'port': int(os.environ.get('DB_PORT', 27017)),
+            'username': os.environ.get('DB_USER'),
+            'password': os.environ.get('DB_PASSWORD'),
+            'authSource': os.environ.get('DB_AUTH_SOURCE'),
+            'authMechanism': os.environ.get('DB_AUTH_MECHANISM'),
+        }
     }
 }
 
