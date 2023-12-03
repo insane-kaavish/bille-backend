@@ -39,7 +39,7 @@ class CustomAuthToken(ObtainAuthToken):
 @api_view(['GET'])
 @permission_classes([AllowAny],)
 def example_view(request):
-    return Response({'Welcome to Thekedaar Hatao'}, status=200)
+    return Response({'Welcome to Bill-E'}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny],)
