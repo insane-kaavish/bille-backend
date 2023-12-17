@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -25,6 +25,8 @@ def index(request):
 class CustomAuthToken(ObtainAuthToken):
 
     def post(self, request, *args, **kwargs):
+        request.data._mutable = True
+        request.data['username'] = request.data['email']
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
@@ -45,9 +47,9 @@ def example_view(request):
 @permission_classes([AllowAny],)
 def login_view(request):
     data = request.data
-    username = data['username']
+    email = data['email']
     password = data['password']
-    user = authenticate(request, username=username, password=password)
+    user = authenticate(request, email=email, password=password)
     if user is not None:
         login(request, user)
         # Redirect to a success page.
@@ -60,12 +62,12 @@ def login_view(request):
 @permission_classes([AllowAny],)  
 def signup_view(request):
     data = request.data
-    username = data['username']
+    # username = data['username']
     email = data['email']
     password = data['password']
     first_name = data['first_name']
     last_name = data['last_name']
-    user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
+    user = CustomUser.objects.create_user(username=email, email=email, password=password, first_name=first_name, last_name=last_name)
     if user is not None:
         user.save()
         return Response({'user created successfully'}, status = 200)
