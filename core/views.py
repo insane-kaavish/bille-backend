@@ -72,3 +72,27 @@ def signup_view(request):
         user.save()
         return Response({'user created successfully'}, status = 200)
     return Response({'user created failed'}, status = 201)
+
+# upload data to the database for room
+@api_view(['POST'])
+@permission_classes([AllowAny],)
+def inputdata_view(request):
+    data = request.data
+    user_serializer = CustomUserSerializer(data=data)
+
+    if user_serializer.is_valid():
+        user = user_serializer.save()
+
+        # Process appliances and usage
+        appliances_data = data.get('appliances', [])
+        for appliance_data in appliances_data:
+            appliance_serializer = ApplianceSerializer(data=appliance_data['appliance'])
+            if appliance_serializer.is_valid():
+                appliance = appliance_serializer.save()
+                ApplianceUsage.objects.create(user=user, appliance=appliance, usage_hours=appliance_data['usage_hours'])
+            else:
+                return Response(appliance_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'input data collection successful'}, status=status.HTTP_200_OK)
+    else:
+        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

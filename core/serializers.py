@@ -7,6 +7,7 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from .models import *
 #Serializer to Get User Details using Django Token Authentication
+
 class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = CustomUser
@@ -21,6 +22,7 @@ class RegisterSerializer(serializers.ModelSerializer):
   password = serializers.CharField(
     write_only=True, required=True, validators=[validate_password])
   password2 = serializers.CharField(write_only=True, required=True)
+
   class Meta:
     model = CustomUser
     fields = ('username', 'password', 'password2',
@@ -29,11 +31,13 @@ class RegisterSerializer(serializers.ModelSerializer):
       'first_name': {'required': True},
       'last_name': {'required': True}
     }
+
   def validate(self, attrs):
     if attrs['password'] != attrs['password2']:
       raise serializers.ValidationError(
         {"password": "Password fields didn't match."})
     return attrs
+  
   def create(self, validated_data):
     user = CustomUser.objects.create(
       # username=validated_data['username'],
@@ -44,3 +48,22 @@ class RegisterSerializer(serializers.ModelSerializer):
     user.set_password(validated_data['password'])
     user.save()
     return user
+
+#Serializer to Login User
+class ApplianceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appliance
+        fields = ['id', 'name']
+
+class ApplianceUsageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApplianceUsage
+        fields = ['appliance', 'usage_hours']
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    appliances = ApplianceUsageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'no_of_people', 'stayathome_people', 'partiallyathome_people',
+                  'fulltimeemployees', 'no_of_rooms', 'appliances']

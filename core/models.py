@@ -6,10 +6,24 @@ from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
 class CustomUser(AbstractUser):
-    email = models.EmailField(unique=True) # changes email to unique and blank to false
+    email = models.EmailField(unique=True)
+    no_of_people = models.IntegerField()
+    stayathome_people = models.IntegerField()
+    partiallyathome_people = models.IntegerField()
+    fulltimeemployees = models.IntegerField()
+    no_of_rooms = models.IntegerField()
+    appliances = models.ManyToManyField('Appliance', through='ApplianceUsage')
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
+class Appliance(models.Model):
+    name = models.CharField(max_length=255)
+
+class ApplianceUsage(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    appliance = models.ForeignKey(Appliance, on_delete=models.CASCADE)
+    usage_hours = models.IntegerField()
     
 # from django.db import models
 # from django.contrib.auth.models import AbstractUser
