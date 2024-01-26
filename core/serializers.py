@@ -9,12 +9,13 @@ from .models import *
 #Serializer to Get User Details using Django Token Authentication
 
 class UserSerializer(serializers.ModelSerializer):
-  class Meta:
-    model = CustomUser
-    fields = ["id", "first_name", "last_name", "username", "email"]
+	class Meta:
+		model = CustomUser
+		fields = ["id", "first_name", "last_name", "username", "email"]
     
 #Serializer to Register User
 class RegisterSerializer(serializers.ModelSerializer):
+<<<<<<< HEAD
   email = serializers.EmailField(
     required=True,
     validators=[UniqueValidator(queryset=CustomUser.objects.all())]
@@ -67,3 +68,35 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'no_of_people', 'stayathome_people', 'partiallyathome_people',
                   'fulltimeemployees', 'no_of_rooms', 'appliances']
+=======
+	email = serializers.EmailField(
+		required=True,
+		validators=[UniqueValidator(queryset=CustomUser.objects.all())]
+	)
+	password = serializers.CharField(
+		write_only=True, required=True, validators=[validate_password])
+	password2 = serializers.CharField(write_only=True, required=True)
+	class Meta:
+		model = CustomUser
+		fields = ('username', 'password', 'password2',
+			'email', 'first_name', 'last_name')
+		extra_kwargs = {
+			'first_name': {'required': True},
+			'last_name': {'required': True}
+			}
+	def validate(self, attrs):
+		if attrs['password'] != attrs['password2']:
+			raise serializers.ValidationError(
+				{"password": "Password fields didn't match."})
+		return attrs
+	def create(self, validated_data):
+		user = CustomUser.objects.create(
+			# username=validated_data['username'],
+			email=validated_data['email'],
+			first_name=validated_data['first_name'],
+			last_name=validated_data['last_name']
+			)
+		user.set_password(validated_data['password'])
+		user.save()
+		return user
+>>>>>>> e2c4e834b8c88fbbfba636c9131683dca3a43547

@@ -16,6 +16,7 @@ class CustomUser(AbstractUser):
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+<<<<<<< HEAD
 
 class Appliance(models.Model):
     name = models.CharField(max_length=255)
@@ -46,3 +47,6 @@ class ApplianceUsage(models.Model):
             
 #     for user in User.objects.all():
 #         Token.objects.get_or_create(user=user)
+=======
+    
+>>>>>>> e2c4e834b8c88fbbfba636c9131683dca3a43547
