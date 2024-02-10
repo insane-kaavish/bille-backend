@@ -11,10 +11,9 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
-class ContactUs(AbstractUser):
-    email = models.EmailField(unique=True) # changes email to unique and blank to false
+# class ContactUs(AbstractUser):
+#     email = models.EmailField(unique=True) # changes email to unique and blank to false
     
-    NAME = 'name'
-    USERNAME_FIELD = 'email'
-    MESSAGE = 'message'
-    
+#     NAME = 'name'
+#     USERNAME_FIELD = 'email'
+#     MESSAGE = 'message'
