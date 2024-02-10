@@ -70,3 +70,17 @@ def signup_view(request):
         user.save()
         return Response({'user created successfully'}, status = 200)
     return Response({'user created failed'}, status = 201)
+
+#api to contact-us, where the user gives name, email, and the message
+@api_view(['POST'])
+@permission_classes([AllowAny],)
+def contact_us(request):
+    data = request.data
+    name = data['name']
+    email = data['email']
+    message = data['message']
+    contact = ContactUs.objects.create(name=name, email=email, message=message)
+    if contact is not None:
+        contact.save()
+        return Response({'contact saved successfully'}, status = 200)
+    return Response({'contact saved failed'}, status = 201)
