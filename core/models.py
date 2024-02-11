@@ -5,26 +5,27 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
-class CustomUser(AbstractUser):
-    email = models.EmailField(unique=True) # changes email to unique and blank to false
+# class CustomUser(AbstractUser):
+#     email = models.EmailField(unique=True) # changes email to unique and blank to false
+    # user_id = models.AutoField(primary_key=True)
+    # user_name = models.CharField(max_length=50)
     
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+#     USERNAME_FIELD = 'email'
+#     REQUIRED_FIELDS = ['username']
     # user_id = models.AutoField(primary_key=True)
 
-class User(models.Model):
-    user_id = models.AutoField(primary_key=True)
-    user_name = models.CharField(max_length=50)
-    email = models.EmailField(unique=True)
-    KE_number = models.CharField(max_length=50)
-    created_at = models.DateTimeField(default=now, editable=False)
-    updated_at = models.DateTimeField(default=now, editable=False)
-    Bills = []
-    Rooms = []
+# class User(models.Model):
+#     user_id = models.AutoField(primary_key=True)
+#     user_name = models.CharField(max_length=50)
+#     email = models.EmailField(unique=True)
+#     KE_number = models.CharField(max_length=50)
+#     created_at = models.DateTimeField(default=now, editable=False)
+#     updated_at = models.DateTimeField(default=now, editable=False)
+#     Bills = []
+#     Rooms = []
 
-    def __str__(self):
-        return self.user_name
-
+#     def __str__(self):
+#         return self.user_name
 
 class Bill(models.Model):
     MONTH_CHOICES = [
@@ -43,7 +44,7 @@ class Bill(models.Model):
     ]
 
     bill_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     month = models.IntegerField(choices=MONTH_CHOICES)
     year = models.IntegerField()
     units = models.IntegerField()
@@ -60,7 +61,7 @@ class Room(models.Model):
      ]   
 
     room_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     tag = models.CharField(max_length=2, choices=TAG_CHOICES)
     alias = models.CharField(max_length=50)
     created_at = models.DateTimeField(default=now, editable=False)
@@ -108,8 +109,8 @@ class Usage(models.Model):
     ]
 
     usage_id = models.AutoField(primary_key=True)
-    appliance_id = models.ForeignKey(Appliance, on_delete=models.CASCADE)
-    room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
+    appliance_id = models.ForeignKey(Appliance, null = True, on_delete=models.CASCADE)
+    room_id = models.ForeignKey(Room, null = True, on_delete=models.CASCADE)
     units = models.IntegerField()
     predict_date = models.DateTimeField()
     month = models.IntegerField(choices=MONTH_CHOICES)

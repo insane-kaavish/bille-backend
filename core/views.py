@@ -16,6 +16,7 @@ from .serializers import *
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from django.contrib.auth.models import User
 
 
 def index(request):
@@ -39,15 +40,15 @@ class CustomAuthToken(ObtainAuthToken):
 @api_view(['GET'])
 @permission_classes([AllowAny],)
 def example_view(request):
-    return Response({'Welcome to Bill-E'}, status=200)
+    return Response({'Welcome to Thekedaar Hatao'}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny],)
 def login_view(request):
     data = request.data
-    email = data['email']
+    username = data['username']
     password = data['password']
-    user = authenticate(request, email=email, password=password)
+    user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
         # Redirect to a success page.
@@ -60,12 +61,12 @@ def login_view(request):
 @permission_classes([AllowAny],)  
 def signup_view(request):
     data = request.data
-    # username = data['username']
+    username = data['username']
     email = data['email']
     password = data['password']
     first_name = data['first_name']
     last_name = data['last_name']
-    user = CustomUser.objects.create_user(username=email, email=email, password=password, first_name=first_name, last_name=last_name)
+    user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
     if user is not None:
         user.save()
         return Response({'user created successfully'}, status = 200)
