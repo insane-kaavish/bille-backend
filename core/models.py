@@ -117,9 +117,10 @@ class Usage(models.Model):
     year = models.IntegerField()
     type = models.CharField(max_length=1, choices=TYPE_CHOICES)
 
-# class ContactUs(AbstractUser):
-#     email = models.EmailField(unique=True) # changes email to unique and blank to false
-    
-#     NAME = 'name'
-#     USERNAME_FIELD = 'email'
-#     MESSAGE = 'message'
+class ContactUs(models.Model):
+    cmes_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+
+    def __str__(self):
+        return self.message
