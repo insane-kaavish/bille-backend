@@ -43,7 +43,7 @@ class Bill(models.Model):
         (12, 'December')
     ]
 
-    bill_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     month = models.IntegerField(choices=MONTH_CHOICES)
     year = models.IntegerField()
@@ -60,7 +60,7 @@ class Room(models.Model):
         ('O', 'Others')
      ]   
 
-    room_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     tag = models.CharField(max_length=2, choices=TAG_CHOICES)
     alias = models.CharField(max_length=50)
@@ -80,7 +80,7 @@ class Appliance(models.Model):
 
     # SUB_CATEGORY_CHOICES = [ ]
 
-    appliance_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
     alias = models.CharField(max_length=50)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
@@ -108,7 +108,7 @@ class Usage(models.Model):
         ('A', 'Appliance')
     ]
 
-    usage_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     appliance_id = models.ForeignKey(Appliance, null = True, on_delete=models.CASCADE)
     room_id = models.ForeignKey(Room, null = True, on_delete=models.CASCADE)
     units = models.IntegerField()
@@ -117,9 +117,9 @@ class Usage(models.Model):
     year = models.IntegerField()
     type = models.CharField(max_length=1, choices=TYPE_CHOICES)
 
-class ContactUs(models.Model):
-    cmes_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+class Message(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
 
     def __str__(self):
