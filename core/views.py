@@ -87,3 +87,42 @@ def message_view(request):
         contact.save()
         return Response({'contact message saved successfully'}, status = 200)
     return Response({'contact message saved failed'}, status = 201)
+
+#Complete thekedaar-hatao view for updating password, works great
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def updatePassword_view(request):
+    user = request.user
+    data = request.data
+    old_password = data['old_password']
+    new_password = data['new_password']
+    if user.check_password(old_password):
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password updated successfully.'}, status=200)
+    else:
+        return Response({'message': 'Old password is incorrect.'}, status=400)
+    
+# Separate view to update username
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def updateUsername_view(request):
+    user = request.user
+    data = request.data
+    new_username = data.get('new_username')  # Fetch new_username from request data
+
+    # Check if new_username is provided
+    if not new_username:
+        return Response({'message': 'New username is required.'}, status=400)
+
+    # Check if the new_username is already taken by another user
+    if User.objects.exclude(pk=user.pk).filter(username=new_username).exists():
+        return Response({'message': 'Username is already taken.'}, status=400)
+
+    # Update the username
+    user.username = new_username
+    user.save()
+
+    return Response({'message': 'Username updated successfully.'}, status=200)
