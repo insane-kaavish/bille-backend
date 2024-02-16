@@ -109,8 +109,8 @@ class Usage(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
-    appliance_id = models.ForeignKey(Appliance, null = True, on_delete=models.CASCADE)
-    room_id = models.ForeignKey(Room, null = True, on_delete=models.CASCADE)
+    appliance_id = models.ForeignKey(Appliance, null = True, blank = True, on_delete=models.CASCADE)
+    room_id = models.ForeignKey(Room, null = True, blank = True, on_delete=models.CASCADE)
     units = models.IntegerField()
     predict_date = models.DateTimeField()
     month = models.IntegerField(choices=MONTH_CHOICES)

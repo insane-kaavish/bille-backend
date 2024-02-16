@@ -151,7 +151,6 @@ def inputdata_view(request):
 def predictedUnit_view(request):
     user_id = request.user # Get the ID of the current user
     try:
-        # Get the most recent bill for the current user based on year and month
         bill = Bill.objects.filter(user_id=user_id).order_by('-year', '-month').first()
         if bill is not None:
             predicted_units = {
@@ -170,10 +169,30 @@ def predictedUnit_view(request):
 def monthwiseUnits_view(request):
     user_id = request.user
     
-    # Get all bills for the current user
     bills = Bill.objects.filter(user_id=user_id)
     
-    # Extract units from each bill and create a list
     units_list = [bill.units for bill in bills]
     
     return Response({'units': units_list}, status=200)
+
+# View to get the units of a particular room
+'''
+The view is currently not giving the correct room units from the Usage model by querying on the room_id
+'''
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def roomwiseUnits_view(request):
+    # user_id = request.user
+    room_id = request.query_params.get('room_id') 
+    try:
+        room = Room.objects.get(id=room_id)
+        appliances = Appliance.objects.filter(room_id=room)
+        units = 0
+        for appliance in appliances:
+            usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
+            if usage is not None:
+                units += usage.units
+        return Response({'units': units}, status=200)
+    except Room.DoesNotExist:
+        return Response({'error': 'Room not found'}, status=404)
