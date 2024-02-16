@@ -12,7 +12,9 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = ["id", "first_name", "last_name", "username", "email", "num_people"]
+		fields = ["id", "first_name", "last_name", "username", "email"
+			# ,"num_people", "num_stayathome", "num_parttime", "num_fulltime"
+			]
     
 #Serializer to Register User
 class RegisterSerializer(serializers.ModelSerializer):
@@ -26,7 +28,9 @@ class RegisterSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = ('username', 'password', 'password2',
-			'email', 'first_name', 'last_name', 'num_people')
+			'email', 'first_name', 'last_name'
+			# , 'num_people', 'num_stayathome', 'num_parttime', 'num_fulltime'
+			)
 		extra_kwargs = {
 			'first_name': {'required': True},
 			'last_name': {'required': True}
@@ -39,10 +43,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 	def create(self, validated_data):
 		user = User.objects.create(
 			# username=validated_data['username'],
-			email=validated_data['email'],
-			first_name=validated_data['first_name'],
-			last_name=validated_data['last_name'],
-			num_people=validated_data['num_people']
+			email= validated_data['email'],
+			first_name= validated_data['first_name'],
+			last_name= validated_data['last_name'],
+			# num_people= validated_data['num_people'],
+			# num_stayathome= validated_data['num_stayathome'],
+			# num_parttime= validated_data['num_parttime'],
+			# num_fulltime= validated_data['num_fulltime']
 			)
 		user.set_password(validated_data['password'])
 		user.save()
