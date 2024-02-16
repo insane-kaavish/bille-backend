@@ -149,7 +149,7 @@ def inputdata_view(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def predictedUnit_view(request):
-    user_id = request.user.id  # Get the ID of the current user
+    user_id = request.user # Get the ID of the current user
     try:
         # Get the most recent bill for the current user based on year and month
         bill = Bill.objects.filter(user_id=user_id).order_by('-year', '-month').first()
@@ -162,3 +162,18 @@ def predictedUnit_view(request):
             return Response({'error': 'No bills found for the current user'}, status=404)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found for the current user'}, status=404)
+    
+# View to get month-wise units for bar graph
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def monthwiseUnits_view(request):
+    user_id = request.user
+    
+    # Get all bills for the current user
+    bills = Bill.objects.filter(user_id=user_id)
+    
+    # Extract units from each bill and create a list
+    units_list = [bill.units for bill in bills]
+    
+    return Response({'units': units_list}, status=200)
