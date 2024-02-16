@@ -10,4 +10,5 @@ urlpatterns = [
     path('update_password/', updatePassword_view),
     path('update_username/', updateUsername_view),
     path('inputdata/', inputdata_view),
+    path('predict/', predictedUnit_view),
 ]

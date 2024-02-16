@@ -143,3 +143,22 @@ def inputdata_view(request):
         input.save()
         return Response({'input saved successfully'}, status = 200)
     return Response({'input saved failed'}, status = 201)
+
+# View to get the amount of units predicted from the Bill model
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def predictedUnit_view(request):
+    user_id = request.user.id  # Get the ID of the current user
+    try:
+        # Get the most recent bill for the current user based on year and month
+        bill = Bill.objects.filter(user_id=user_id).order_by('-year', '-month').first()
+        if bill is not None:
+            predicted_units = {
+                'units': bill.units
+            }
+            return Response(predicted_units, status=200)
+        else:
+            return Response({'error': 'No bills found for the current user'}, status=404)
+    except Bill.DoesNotExist:
+        return Response({'error': 'Bill not found for the current user'}, status=404)
