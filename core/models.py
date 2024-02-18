@@ -125,13 +125,13 @@ class Message(models.Model):
     def __str__(self):
         return self.message
     
-class InputData(models.Model):
-    user = models.OneToOneField(User, null = True, on_delete=models.CASCADE)
+# class InputData(models.Model):
+#     user = models.OneToOneField(User, null = True, on_delete=models.CASCADE)
 
-    num_people = models.IntegerField()
-    num_stayathome = models.IntegerField()
-    num_parttime = models.IntegerField()
-    num_fulltime = models.IntegerField()
+#     num_people = models.IntegerField()
+#     num_stayathome = models.IntegerField()
+#     num_parttime = models.IntegerField()
+#     num_fulltime = models.IntegerField()
 
-    def __str__(self):
-        return str(self.user_id)
+#     def __str__(self):
+#         return str(self.user_id)

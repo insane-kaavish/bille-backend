@@ -12,8 +12,8 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = ["id", "first_name", "last_name", "username", "email"
-			# ,"num_people", "num_stayathome", "num_parttime", "num_fulltime"
+		fields = ["id", "first_name", "last_name", "username", "email","num_people"
+			# , "num_stayathome", "num_parttime", "num_fulltime"
 			]
     
 #Serializer to Register User
@@ -28,8 +28,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = ('username', 'password', 'password2',
-			'email', 'first_name', 'last_name'
-			# , 'num_people', 'num_stayathome', 'num_parttime', 'num_fulltime'
+			'email', 'first_name', 'last_name', 'num_people'
+			# , 'num_stayathome', 'num_parttime', 'num_fulltime'
 			)
 		extra_kwargs = {
 			'first_name': {'required': True},
@@ -46,7 +46,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 			email= validated_data['email'],
 			first_name= validated_data['first_name'],
 			last_name= validated_data['last_name'],
-			# num_people= validated_data['num_people'],
+			num_people= validated_data['num_people'],
 			# num_stayathome= validated_data['num_stayathome'],
 			# num_parttime= validated_data['num_parttime'],
 			# num_fulltime= validated_data['num_fulltime']

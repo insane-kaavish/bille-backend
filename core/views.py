@@ -128,21 +128,21 @@ def updateUsername_view(request):
     return Response({'message': 'Username updated successfully.'}, status=200)
 
 # View to store the input data such as number of people, stayathome, parttime, fulltime
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def inputdata_view(request):
-    data = request.data
-    user_id = request.user
-    num_people = data['num_people']
-    num_stayathome = data['num_stayathome']
-    num_parttime = data['num_parttime']
-    num_fulltime = data['num_fulltime']
-    input = InputData.objects.create(num_people=num_people, num_stayathome=num_stayathome, num_parttime=num_parttime, num_fulltime=num_fulltime)
-    if input is not None:
-        input.save()
-        return Response({'input saved successfully'}, status = 200)
-    return Response({'input saved failed'}, status = 201)
+# @api_view(['POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+# def inputdata_view(request):
+#     data = request.data
+#     user_id = request.user
+#     num_people = data['num_people']
+#     num_stayathome = data['num_stayathome']
+#     num_parttime = data['num_parttime']
+#     num_fulltime = data['num_fulltime']
+#     input = InputData.objects.create(num_people=num_people, num_stayathome=num_stayathome, num_parttime=num_parttime, num_fulltime=num_fulltime)
+#     if input is not None:
+#         input.save()
+#         return Response({'input saved successfully'}, status = 200)
+#     return Response({'input saved failed'}, status = 201)
 
 # View to get the amount of units predicted from the Bill model
 @api_view(['GET'])
