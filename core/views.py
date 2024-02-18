@@ -169,11 +169,31 @@ def predictedUnit_view(request):
 def monthwiseUnits_view(request):
     user_id = request.user
     
+    # Fetch bills for the current user
     bills = Bill.objects.filter(user_id=user_id)
     
-    units_list = [bill.units for bill in bills]
+    # Group bills by month and year
+    monthwise_bills = {}
+    for bill in bills:
+        month_year_key = f"{bill.get_month_display()}-{bill.year}"
+        if month_year_key not in monthwise_bills:
+            monthwise_bills[month_year_key] = []
+        monthwise_bills[month_year_key].append(bill.units)
     
-    return Response({'units': units_list}, status=200)
+    # Sort keys by year and month
+    sorted_monthwise_keys = sorted(
+    monthwise_bills.keys(),
+    key=lambda x: (int(x.split('-')[1]), next((m[0] for m in Bill.MONTH_CHOICES if m[1] == x.split('-')[0]), None)))
+
+    
+    # Sort units within each group
+    for key in sorted_monthwise_keys:
+        monthwise_bills[key].sort()
+    
+    # Create the final response dictionary
+    sorted_monthwise_bills = {key: monthwise_bills[key] for key in sorted_monthwise_keys}
+    
+    return Response({'monthwise_units': sorted_monthwise_bills}, status=200)
 
 # View to get the units of a particular room
 '''
