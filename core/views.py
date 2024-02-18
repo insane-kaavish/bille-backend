@@ -128,21 +128,48 @@ def updateUsername_view(request):
     return Response({'message': 'Username updated successfully.'}, status=200)
 
 # View to store the input data such as number of people, stayathome, parttime, fulltime
-# @api_view(['POST'])
-# @authentication_classes([TokenAuthentication])
-# @permission_classes([IsAuthenticated])
-# def inputdata_view(request):
-#     data = request.data
-#     user_id = request.user
-#     num_people = data['num_people']
-#     num_stayathome = data['num_stayathome']
-#     num_parttime = data['num_parttime']
-#     num_fulltime = data['num_fulltime']
-#     input = InputData.objects.create(num_people=num_people, num_stayathome=num_stayathome, num_parttime=num_parttime, num_fulltime=num_fulltime)
-#     if input is not None:
-#         input.save()
-#         return Response({'input saved successfully'}, status = 200)
-#     return Response({'input saved failed'}, status = 201)
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def inputdata_view(request):
+    data = request.data
+    user = request.user
+
+    # Extract data from request
+    num_people = data.get('num_people')
+    rooms_data = data.get('rooms', [])
+
+    # Update user's num_people value
+    user.num_people = num_people
+    user.save()
+
+    # Process rooms data
+    for room_data in rooms_data:
+        # Extract room details
+        tag = room_data.get('tag')
+        alias = room_data.get('alias')
+        appliances_data = room_data.get('appliances', [])
+
+        # Create room
+        room = Room.objects.create(user_id=user, tag=tag, alias=alias)
+
+        # Process appliances data
+        for appliance_data in appliances_data:
+            # Extract appliance details
+            category = appliance_data.get('category')
+            sub_category = appliance_data.get('sub_category')
+            alias = appliance_data.get('alias')
+            usage = appliance_data.get('usage')
+
+            # Create appliance
+            appliance = Appliance.objects.create(room_id=room, category=category, sub_category=sub_category ,alias=alias)
+
+            # Create usage record
+            usage_record = Usage.objects.create(room_id=room, appliance_id=appliance, units=usage)
+
+    return Response({'message': 'Input data saved successfully'}, status=200)
+
+    return Response({'message': 'Input data saved successfully'}, status=200)
 
 # View to get the amount of units predicted from the Bill model
 @api_view(['GET'])

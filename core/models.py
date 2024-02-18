@@ -78,12 +78,11 @@ class Appliance(models.Model):
         ('Others', 'Others')
     ]
 
-    # SUB_CATEGORY_CHOICES = [ ]
-
     id = models.AutoField(primary_key=True)
     room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
     alias = models.CharField(max_length=50)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    sub_category = models.CharField(null = True, max_length=50)
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(default=now, editable=False)
     
@@ -112,10 +111,10 @@ class Usage(models.Model):
     appliance_id = models.ForeignKey(Appliance, null = True, blank = True, on_delete=models.CASCADE)
     room_id = models.ForeignKey(Room, null = True, blank = True, on_delete=models.CASCADE)
     units = models.IntegerField()
-    predict_date = models.DateTimeField()
-    month = models.IntegerField(choices=MONTH_CHOICES)
-    year = models.IntegerField()
-    type = models.CharField(max_length=1, choices=TYPE_CHOICES)
+    predict_date = models.DateTimeField(null = True)
+    month = models.IntegerField(null = True, choices=MONTH_CHOICES)
+    year = models.IntegerField(null = True)
+    type = models.CharField(null = True, max_length=1, choices=TYPE_CHOICES)
 
 class Message(models.Model):
     id = models.AutoField(primary_key=True)
