@@ -153,6 +153,8 @@ def inputdata_view(request):
         # Create room
         room = Room.objects.create(user_id=user, tag=tag, alias=alias)
 
+        total_usage = 0
+
         # Process appliances data
         for appliance_data in appliances_data:
             # Extract appliance details
@@ -160,16 +162,19 @@ def inputdata_view(request):
             sub_category = appliance_data.get('sub_category')
             alias = appliance_data.get('alias')
             usage = appliance_data.get('usage')
+            total_usage += int(usage)
 
             # Create appliance
             appliance = Appliance.objects.create(room_id=room, category=category, sub_category=sub_category ,alias=alias)
 
             # Create usage record
-            usage_record = Usage.objects.create(room_id=room, appliance_id=appliance, units=usage)
+            Usage.objects.create(appliance_id=appliance, units=usage)
+        
+        Usage.objects.create(room_id=room, units=total_usage)
 
     return Response({'message': 'Input data saved successfully'}, status=200)
 
-    return Response({'message': 'Input data saved successfully'}, status=200)
+    
 
 # View to get the amount of units predicted from the Bill model
 @api_view(['GET'])
