@@ -18,6 +18,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 
+from .scraper import process_single_pdf, scrape, read_pdf
 
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
@@ -248,3 +249,17 @@ def roomwiseUnits_view(request):
         return Response({'units': units}, status=200)
     except Room.DoesNotExist:
         return Response({'error': 'Room not found'}, status=404)
+    
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def scrape_view(request):
+    # Assume web scraper called for user.ke_num
+    try:
+        print('Trying to scrape')
+        scrape('0400000081726')
+        read_pdf()
+        return Response({'message': 'Scraping successful'}, status=200)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+        

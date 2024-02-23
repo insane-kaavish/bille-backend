@@ -13,4 +13,5 @@ urlpatterns = [
     path('predictedUnit/', predictedUnit_view),
     path('monthwiseUnits/', monthwiseUnits_view),
     path('roomwiseUnits/', roomwiseUnits_view),
+    path('scrape/', scrape_view),
 ]
