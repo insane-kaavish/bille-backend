@@ -101,7 +101,7 @@ def scrape(account_number):
     "download.default_directory": os.path.join(os.getcwd(), "bills"),
 })
     options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), options=options)
+    driver = webdriver.Chrome(options=options)
     
     driver.get('https://staging.ke.com.pk:24555/ReBrand/DuplicateBill.aspx')
     driver.implicitly_wait(30)
