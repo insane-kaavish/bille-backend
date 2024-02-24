@@ -16,6 +16,21 @@ from .models import *
 from .serializers import *
 # Create your views here.
 
+MONTH_NAMES = {
+        'Jan': 1,
+        'Feb': 2,
+        'Mar': 3,
+        'Apr': 4,
+        'May': 5,
+        'Jun': 6,
+        'Jul': 7,
+        'Aug': 8,
+        'Sep': 9,
+        'Oct': 10,
+        'Nov': 11,
+        'Dec': 12
+    }
+
 from .scraper import scrape, read_pdf
 
 def index(request):
@@ -248,7 +263,6 @@ def roomwise_units_view(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def scrape_view(request):
-    # Assume web scraper called for user.ke_num
     try:
         user = request.user
         print('Trying to scrape')
@@ -259,6 +273,16 @@ def scrape_view(request):
             response = scrape(user.ke_num)
         units = read_pdf()
         if len(units):
+            # store the units in the database
+            for month, unit in units.items():
+                # separate month and year from 'jan-23'
+                month, year = month.split('-')
+                month = month.capitalize()
+                month = MONTH_NAMES[month]
+                year = int(year) + 2000
+                # create a bill object
+                bill = Bill.objects.create(user_id=user, month=month, year=year, units=unit, is_predicted=False)
+                bill.save()               
             return Response({'message': 'Scraping successful'}, status=200)
         return Response({'message': 'Scraping failed'}, status=404)
     except Exception as e:
