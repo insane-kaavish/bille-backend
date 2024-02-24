@@ -257,9 +257,13 @@ def scrape_view(request):
     # Assume web scraper called for user.ke_num
     try:
         print('Trying to scrape')
-        scrape('0400000081726')
-        read_pdf()
-        return Response({'message': 'Scraping successful'}, status=200)
+        response = scrape('0400000081726')
+        while response.status_code == 500:
+            response = scrape('0400000081726')
+        units = read_pdf()
+        if units: return Response({'message': 'Scraping successful'}, status=200)
+        return response
+        
     except Exception as e:
         return Response({'error': str(e)}, status=500)
         

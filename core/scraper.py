@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import StaleElementReferenceException, UnexpectedAlertPresentException, NoAlertPresentException, NoSuchElementException
 import os
 import time
+from rest_framework.response import Response
 
 logging.basicConfig(filename='scraper.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -90,6 +91,7 @@ def read_pdf():
     # delete all files in the directory
     for file in os.listdir(directory):
         os.remove(os.path.join(directory, file))
+    return units
 
 def scrape(account_number):
     # Set up the web driver
@@ -117,8 +119,6 @@ def scrape(account_number):
         captcha_input.send_keys(captcha.text)
         
         view_bill_button = driver.find_element(By.ID, 'btnViewBill') # Replace with the correct ID
-        if view_bill_button:
-            print("View Bill Button Found")
         view_bill_button.click()
         
         first_entry_download_button_xpath = "(//input[@value='Download'])[1]"
@@ -131,6 +131,7 @@ def scrape(account_number):
     except NoSuchElementException:
         logging.error("Element not found")
         print("Element not found")
+        return Response({'message': 'Error in web scraping'}, status=500)
     except UnexpectedAlertPresentException:
         try:
             alert = driver.switch_to.alert
@@ -138,6 +139,7 @@ def scrape(account_number):
             logging.error("Account number not found")
         except NoAlertPresentException:
             logging.error("No alert present")
+        return Response({'message': 'Account number not found'}, status=404)
     except Exception as e:
         logging.error(str(e))
         print(str(e))
@@ -145,5 +147,6 @@ def scrape(account_number):
     wait_for_download(os.path.join(os.getcwd(), "bills"))
     
     driver.quit()
+    return Response({'message': 'Web scraping successful'}, status=200)
     
     
