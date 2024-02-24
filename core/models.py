@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.timezone import now
+import uuid
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from .managers import CustomUserManager
@@ -21,6 +22,12 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+    def save(self, *args, **kwargs):
+        if not self.username:
+            # Generate a unique username
+            self.username = str(uuid.uuid4())
+        super().save(*args, **kwargs)
 
 
 class Bill(models.Model):

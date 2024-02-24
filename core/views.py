@@ -1,4 +1,6 @@
 from django.http import HttpResponse
+from django.utils.datastructures import MultiValueDictKeyError
+from django.db import IntegrityError
 from django.shortcuts import render,redirect
 from django.contrib.auth import authenticate, login
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
@@ -42,10 +44,13 @@ def example_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny],)
 def login_view(request):
-    data = request.data
-    email = data['email']
-    password = data['password']
-    user = authenticate(request, email=email, password=password)
+    try:
+        data = request.data
+        email = data['email']
+        password = data['password']
+        user = authenticate(request, email=email, password=password)
+    except MultiValueDictKeyError:
+        return Response({'error': 'Email and password are required'}, status=400)
     if user is not None:
         login(request, user)
         # Redirect to a success page.
@@ -58,11 +63,16 @@ def login_view(request):
 @permission_classes([AllowAny],)  
 def signup_view(request):
     data = request.data
-    email = data['email']
-    password = data['password']
-    first_name = data['first_name']
-    last_name = data['last_name']
-    user = CustomUser.objects.create_user(email=email, password=password, first_name=first_name, last_name=last_name)
+    try:
+        email = data['email']
+        password = data['password']
+        first_name = data['first_name'] if 'first_name' in data else ''
+        last_name = data['last_name'] if 'last_name' in data else ''
+        user = CustomUser.objects.create_user(email=email, password=password, first_name=first_name, last_name=last_name)
+    except IntegrityError:
+        return Response({'error': 'User already exists'}, status=400)
+    except KeyError:
+        return Response({'error': 'Email, password are required'}, status=400)
     if user is not None:
         user.save()
         return Response({'user created successfully'}, status = 200)
