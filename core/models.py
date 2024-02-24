@@ -1,31 +1,27 @@
 from django.db import models
 from django.utils.timezone import now
-from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from .managers import CustomUserManager
 
 # Create your models here.
 
-# class CustomUser(AbstractUser):
-#     email = models.EmailField(unique=True) # changes email to unique and blank to false
-    # user_id = models.AutoField(primary_key=True)
-    # user_name = models.CharField(max_length=50)
+class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True) # changes email to unique and blank to false
+    user_id = models.AutoField(primary_key=True)
+    num_people = models.IntegerField(blank=True, null=True)
+    ke_num = models.CharField(max_length=50, blank=True, null=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
     
-#     USERNAME_FIELD = 'email'
-#     REQUIRED_FIELDS = ['username']
-    # user_id = models.AutoField(primary_key=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+    
+    objects = CustomUserManager() 
 
-# class User(models.Model):
-#     user_id = models.AutoField(primary_key=True)
-#     user_name = models.CharField(max_length=50) 
-#     email = models.EmailField(unique=True)
-#     KE_number = models.CharField(max_length=50)
-#     created_at = models.DateTimeField(default=now, editable=False)
-#     updated_at = models.DateTimeField(default=now, editable=False)
-#     Bills = []
-#     Rooms = []
+    def __str__(self):
+        return self.email
 
-#     def __str__(self):
-#         return self.user_name
 
 class Bill(models.Model):
     MONTH_CHOICES = [
@@ -44,7 +40,7 @@ class Bill(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     month = models.IntegerField(choices=MONTH_CHOICES)
     year = models.IntegerField()
     units = models.IntegerField()
@@ -61,7 +57,7 @@ class Room(models.Model):
      ]   
 
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     tag = models.CharField(max_length=2, choices=TAG_CHOICES)
     alias = models.CharField(max_length=50)
     created_at = models.DateTimeField(default=now, editable=False)
@@ -118,19 +114,9 @@ class Usage(models.Model):
 
 class Message(models.Model):
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
 
     def __str__(self):
         return self.message
     
-# class InputData(models.Model):
-#     user = models.OneToOneField(User, null = True, on_delete=models.CASCADE)
-
-#     num_people = models.IntegerField()
-#     num_stayathome = models.IntegerField()
-#     num_parttime = models.IntegerField()
-#     num_fulltime = models.IntegerField()
-
-#     def __str__(self):
-#         return str(self.user_id)

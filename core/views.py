@@ -1,11 +1,12 @@
 from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-# from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import generics
 
@@ -13,10 +14,6 @@ from django.shortcuts import render,redirect
 from .models import *
 from .serializers import *
 # Create your views here.
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
-from django.contrib.auth.models import User
 
 from .scraper import process_single_pdf, scrape, read_pdf
 
@@ -41,15 +38,15 @@ class CustomAuthToken(ObtainAuthToken):
 @api_view(['GET'])
 @permission_classes([AllowAny],)
 def example_view(request):
-    return Response({'Welcome to Thekedaar Hatao'}, status=200)
+    return Response({'Welcome to Bill-E'}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny],)
 def login_view(request):
     data = request.data
-    username = data['username']
+    email = data['email']
     password = data['password']
-    user = authenticate(request, username=username, password=password)
+    user = authenticate(request, email=email, password=password)
     if user is not None:
         login(request, user)
         # Redirect to a success page.
@@ -67,7 +64,7 @@ def signup_view(request):
     password = data['password']
     first_name = data['first_name']
     last_name = data['last_name']
-    user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
+    user = CustomUser.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
     if user is not None:
         user.save()
         return Response({'user created successfully'}, status = 200)
@@ -119,7 +116,7 @@ def updateUsername_view(request):
         return Response({'message': 'New username is required.'}, status=400)
 
     # Check if the new_username is already taken by another user
-    if User.objects.exclude(pk=user.pk).filter(username=new_username).exists():
+    if CustomUser.objects.exclude(pk=user.pk).filter(username=new_username).exists():
         return Response({'message': 'Username is already taken.'}, status=400)
 
     # Update the username

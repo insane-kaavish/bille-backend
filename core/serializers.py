@@ -11,7 +11,7 @@ from .models import *
 #Serializer to Get User Details using Django Token Authentication
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
-		model = User
+		model = CustomUser
 		fields = ["id", "first_name", "last_name", "username", "email","num_people"
 			# , "num_stayathome", "num_parttime", "num_fulltime"
 			]
@@ -20,13 +20,13 @@ class UserSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
 	email = serializers.EmailField(
 		required=True,
-		validators=[UniqueValidator(queryset=User.objects.all())]
+		validators=[UniqueValidator(queryset=CustomUser.objects.all())]
 	)
 	password = serializers.CharField(
 		write_only=True, required=True, validators=[validate_password])
 	password2 = serializers.CharField(write_only=True, required=True)
 	class Meta:
-		model = User
+		model = CustomUser
 		fields = ('username', 'password', 'password2',
 			'email', 'first_name', 'last_name', 'num_people'
 			# , 'num_stayathome', 'num_parttime', 'num_fulltime'
@@ -41,7 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 				{"password": "Password fields didn't match."})
 		return attrs
 	def create(self, validated_data):
-		user = User.objects.create(
+		user = CustomUser.objects.create(
 			# username=validated_data['username'],
 			email= validated_data['email'],
 			first_name= validated_data['first_name'],
