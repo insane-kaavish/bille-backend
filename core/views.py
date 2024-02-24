@@ -11,6 +11,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
+import random
 
 from .models import *
 from .serializers import *
@@ -189,32 +190,40 @@ def inputdata_view(request):
     
 
 # View to get the amount of units predicted from the Bill model
-@api_view(['GET'])
+@api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def predicted_units_view(request):
-    user_id = request.user # Get the ID of the current user
+def predict_view(request):
+    user = request.user # Get the ID of the current user
+    data = request.data
     try:
-        bill = Bill.objects.filter(user_id=user_id).order_by('-year', '-month').first()
-        if bill is not None:
-            predicted_units = {
-                'units': bill.units
-            }
-            return Response(predicted_units, status=200)
+        month = data['month']
+        month = MONTH_NAMES[month]
+        year = data['year']
+        bill = Bill.objects.filter(user_id=user, month=month, year=year, is_predicted=True)
+        if bill:
+            return Response({'units': bill[0].units}, status=200)
         else:
+            # TODO: Predict units and return
+            units = random.randint(100, 500)
+            bill = Bill.objects.create(user_id=user, month=month, year=year, units=units, is_predicted=True)
+            bill.save()
+            return Response({'units': units}, status=200)
             return Response({'error': 'No bills found for the current user'}, status=404)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found for the current user'}, status=404)
+    except KeyError:
+        return Response({'error': 'Month and year are required'}, status=400)
     
 # View to get month-wise units for bar graph
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def monthwise_units_view(request):
-    user_id = request.user
+def monthwise_view(request):
+    user = request.user
     
     # Fetch bills for the current user
-    bills = Bill.objects.filter(user_id=user_id)
+    bills = Bill.objects.filter(user_id=user)
     
     # Group bills by month and year
     monthwise_bills = {}
@@ -244,7 +253,7 @@ def monthwise_units_view(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def roomwise_units_view(request):
+def roomwise_view(request):
     # user_id = request.user
     room_id = request.query_params.get('room_id') 
     try:
@@ -281,8 +290,10 @@ def scrape_view(request):
                 month = MONTH_NAMES[month]
                 year = int(year) + 2000
                 # create a bill object
-                bill = Bill.objects.create(user_id=user, month=month, year=year, units=unit, is_predicted=False)
-                bill.save()               
+                # only if the bill does not exist
+                if not Bill.objects.filter(user_id=user, month=month, year=year, is_predicted=False).exists():
+                    bill = Bill.objects.create(user_id=user, month=month, year=year, units=unit, is_predicted=False)
+                    bill.save()               
             return Response({'message': 'Scraping successful'}, status=200)
         return Response({'message': 'Scraping failed'}, status=404)
     except Exception as e:
