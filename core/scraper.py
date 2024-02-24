@@ -131,7 +131,7 @@ def scrape(account_number):
     except NoSuchElementException:
         logging.error("Element not found")
         print("Element not found")
-        return Response({'message': 'Error in web scraping'}, status=500)
+        return Response({'message': 'Error in web scraping'}, status=501)
     except UnexpectedAlertPresentException:
         try:
             alert = driver.switch_to.alert
@@ -140,9 +140,6 @@ def scrape(account_number):
         except NoAlertPresentException:
             logging.error("No alert present")
         return Response({'message': 'Account number not found'}, status=404)
-    except Exception as e:
-        logging.error(str(e))
-        print(str(e))
     
     wait_for_download(os.path.join(os.getcwd(), "bills"))
     

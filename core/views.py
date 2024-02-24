@@ -250,14 +250,17 @@ def roomwise_units_view(request):
 def scrape_view(request):
     # Assume web scraper called for user.ke_num
     try:
+        user = request.user
         print('Trying to scrape')
-        response = scrape('0400000081726')
-        while response.status_code == 500:
-            response = scrape('0400000081726')
+        if not user.ke_num:
+            return Response({'error': 'KE number not found'}, status=400)
+        response = scrape(user.ke_num)
+        if response.status_code == 501:
+            response = scrape(user.ke_num)
         units = read_pdf()
-        if units: return Response({'message': 'Scraping successful'}, status=200)
-        return response
-        
+        if len(units):
+            return Response({'message': 'Scraping successful'}, status=200)
+        return Response({'message': 'Scraping failed'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
         
