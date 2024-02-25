@@ -11,14 +11,14 @@ from core.models import Appliance, Usage, Room
 def appliances_view(request):
     user = request.user
     # find all the rooms of the user
-    rooms = Room.objects.filter(user_id=user)
-    appliances = Appliance.objects.filter(room_id__in=rooms)
+    rooms = Room.objects.filter(user=user)
+    appliances = Appliance.objects.filter(room__in=rooms)
     appliance_data = []
     for appliance in appliances:
-        usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
+        usage = Usage.objects.filter(appliance=appliance).order_by('-predict_date').first()
         appliance_data.append({
             'id': appliance.id,
-            'room_id': appliance.room_id.id,
+            'room_id': appliance.room.id,
             'alias': appliance.alias,
             'category': appliance.category,
             'sub_category': appliance.sub_category,
@@ -34,7 +34,7 @@ def appliance_view(request):
     appliance_id = request.query_params.get('appliance_id')
     try:
         appliance = Appliance.objects.get(id=appliance_id)
-        usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
+        usage = Usage.objects.filter(appliance=appliance).order_by('-predict_date').first()
         return Response({
             'id': appliance.id,
             'alias': appliance.alias,

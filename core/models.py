@@ -24,7 +24,7 @@ MONTH_CHOICES = [
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True) # changes email to unique and blank to false
-    user_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     num_people = models.IntegerField(blank=True, null=True)
     ke_num = models.CharField(max_length=50, blank=True, null=True)
     first_name = models.CharField(max_length=50, blank=True, null=True)
@@ -46,7 +46,7 @@ class CustomUser(AbstractUser):
 
 class Bill(models.Model):
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     month = models.IntegerField(choices=MONTH_CHOICES)
     year = models.IntegerField()
     units = models.IntegerField()
@@ -63,7 +63,7 @@ class Room(models.Model):
      ]   
 
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     tag = models.CharField(max_length=2, choices=TAG_CHOICES)
     alias = models.CharField(max_length=50)
     created_at = models.DateTimeField(default=now, editable=False)
@@ -81,7 +81,7 @@ class Appliance(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
-    room_id = models.ForeignKey(Room, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
     alias = models.CharField(max_length=50)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     sub_category = models.CharField(null = True, max_length=50)
@@ -95,8 +95,8 @@ class Usage(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
-    appliance_id = models.ForeignKey(Appliance, null = True, blank = True, on_delete=models.CASCADE)
-    room_id = models.ForeignKey(Room, null = True, blank = True, on_delete=models.CASCADE)
+    appliance = models.ForeignKey(Appliance, null = True, blank = True, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, null = True, blank = True, on_delete=models.CASCADE)
     units = models.IntegerField()
     predict_date = models.DateTimeField(null = True)
     month = models.IntegerField(null = True, choices=MONTH_CHOICES)
@@ -105,7 +105,7 @@ class Usage(models.Model):
 
 class Message(models.Model):
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
 
     def __str__(self):

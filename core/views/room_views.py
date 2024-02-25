@@ -10,10 +10,10 @@ from core.models import Room, Appliance, Usage
 @permission_classes([IsAuthenticated])
 def rooms_view(request):
     user = request.user
-    rooms = Room.objects.filter(user_id=user)
+    rooms = Room.objects.filter(user=user)
     room_data = []
     for room in rooms:
-        appliances = Appliance.objects.filter(room_id=room)
+        appliances = Appliance.objects.filter(room=room)
         total_usage = 0
         for appliance in appliances:
             usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
@@ -35,7 +35,7 @@ def room_view(request):
     room_id = request.query_params.get('room_id') 
     try:
         room = Room.objects.get(id=room_id)
-        appliances = Appliance.objects.filter(room_id=room)
+        appliances = Appliance.objects.filter(room=room)
         room_data = {
             'id': room.id,
             'tag': room.tag,
@@ -44,7 +44,7 @@ def room_view(request):
         }
         total_usage = 0
         for appliance in appliances:
-            usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
+            usage = Usage.objects.filter(appliance=appliance).order_by('-predict_date').first()
             if usage is not None:
                 total_usage += usage.units
             room_data['appliances'].append({

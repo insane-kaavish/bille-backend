@@ -81,9 +81,9 @@ def signup_view(request):
 @permission_classes([IsAuthenticated])
 def message_view(request):
     data = request.data
-    user_id = request.user 
+    user = request.user 
     message = data['message']
-    contact = Message.objects.create(user_id= user_id, message=message)
+    contact = Message.objects.create(user=user, message=message)
     if contact is not None:
         contact.save()
         return Response({'contact message saved successfully'}, status = 200)
@@ -144,7 +144,7 @@ def input_view(request):
         appliances_data = room_data.get('appliances', [])
 
         # Create room
-        room = Room.objects.create(user_id=user, tag=tag, alias=alias)
+        room = Room.objects.create(user=user, tag=tag, alias=alias)
 
         total_usage = 0
 
@@ -158,12 +158,12 @@ def input_view(request):
             total_usage += int(usage)
 
             # Create appliance
-            appliance = Appliance.objects.create(room_id=room, category=category, sub_category=sub_category ,alias=alias)
+            appliance = Appliance.objects.create(room=room, category=category, sub_category=sub_category ,alias=alias)
 
             # Create usage record
-            Usage.objects.create(appliance_id=appliance, units=usage)
+            Usage.objects.create(appliance=appliance, units=usage)
         
-        Usage.objects.create(room_id=room, units=total_usage)
+        Usage.objects.create(room=room, units=total_usage)
 
     return Response({'message': 'Input data saved successfully'}, status=200)
 
@@ -179,13 +179,13 @@ def predict_view(request):
         month = data['month']
         month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
         year = data['year']
-        bill = Bill.objects.filter(user_id=user, month=month, year=year, is_predicted=True)
+        bill = Bill.objects.filter(user=user, month=month, year=year, is_predicted=True)
         if bill:
             return Response({'units': bill[0].units}, status=200)
         else:
             # TODO: Predict units and return
             units = random.randint(100, 500)
-            bill = Bill.objects.create(user_id=user, month=month, year=year, units=units, is_predicted=True)
+            bill = Bill.objects.create(user=user, month=month, year=year, units=units, is_predicted=True)
             bill.save()
             return Response({'units': units}, status=200)
             return Response({'error': 'No bills found for the current user'}, status=404)
@@ -201,7 +201,7 @@ def predict_view(request):
 def months_view(request):
     user = request.user
     is_predicted = request.query_params.get('is_predicted', False)
-    bills = Bill.objects.filter(user_id=user)
+    bills = Bill.objects.filter(user=user)
     bills = bills.filter(is_predicted=is_predicted)
     
     monthwise_bills = {}
@@ -245,8 +245,8 @@ def scrape_view(request):
                 month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
                 year = int(year) + 2000
                 # create a bill object only if the bill does not exist
-                if not Bill.objects.filter(user_id=user, month=month, year=year, is_predicted=False).exists():
-                    bill = Bill.objects.create(user_id=user, month=month, year=year, units=unit, is_predicted=False)
+                if not Bill.objects.filter(user=user, month=month, year=year, is_predicted=False).exists():
+                    bill = Bill.objects.create(user=user, month=month, year=year, units=unit, is_predicted=False)
                     bill.save()               
             return Response({'message': 'Scraping successful'}, status=200)
         return Response({'message': 'Scraping failed'}, status=404)
