@@ -6,14 +6,29 @@ from django.conf import settings
 from .managers import CustomUserManager
 
 # Create your models here.
+MONTH_CHOICES = [
+    (1, 'Jan'),
+    (2, 'Feb'),
+    (3, 'Mar'),
+    (4, 'Apr'),
+    (5, 'May'),
+    (6, 'Jun'),
+    (7, 'Jul'),
+    (8, 'Aug'),
+    (9, 'Sep'),
+    (10, 'Oct'),
+    (11, 'Nov'),
+    (12, 'Dec')
+
+]
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True) # changes email to unique and blank to false
     user_id = models.AutoField(primary_key=True)
     num_people = models.IntegerField(blank=True, null=True)
     ke_num = models.CharField(max_length=50, blank=True, null=True)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -29,23 +44,7 @@ class CustomUser(AbstractUser):
             self.username = str(uuid.uuid4())
         super().save(*args, **kwargs)
 
-
 class Bill(models.Model):
-    MONTH_CHOICES = [
-        (1, 'January'),
-        (2, 'February'),
-        (3, 'March'),
-        (4, 'April'),
-        (5, 'May'),
-        (6, 'June'),
-        (7, 'July'),
-        (8, 'August'),
-        (9, 'September'),
-        (10, 'October'),
-        (11, 'November'),
-        (12, 'December')
-    ]
-
     id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     month = models.IntegerField(choices=MONTH_CHOICES)
@@ -90,21 +89,6 @@ class Appliance(models.Model):
     updated_at = models.DateTimeField(default=now, editable=False)
     
 class Usage(models.Model):
-    MONTH_CHOICES = [
-        (1, 'January'),
-        (2, 'February'),
-        (3, 'March'),
-        (4, 'April'),
-        (5, 'May'),
-        (6, 'June'),
-        (7, 'July'),
-        (8, 'August'),
-        (9, 'September'),
-        (10, 'October'),
-        (11, 'November'),
-        (12, 'December')
-    ]
-
     TYPE_CHOICES = [
         ('R', 'Room'),
         ('A', 'Appliance')

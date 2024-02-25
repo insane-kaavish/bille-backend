@@ -15,29 +15,9 @@ import random
 
 from .models import *
 from .serializers import *
-# Create your views here.
-
-MONTH_NAMES = {
-        'Jan': 1,
-        'Feb': 2,
-        'Mar': 3,
-        'Apr': 4,
-        'May': 5,
-        'Jun': 6,
-        'Jul': 7,
-        'Aug': 8,
-        'Sep': 9,
-        'Oct': 10,
-        'Nov': 11,
-        'Dec': 12
-    }
-
 from .scraper import scrape, read_pdf
 
-def index(request):
-    return HttpResponse("Hello, world. You're at the polls index.")
-
-
+# Create your views here.
 class CustomObtainAuthToken(ObtainAuthToken):
     serializer_class = AuthTokenSerializer
 
@@ -221,11 +201,10 @@ def predict_view(request):
 @permission_classes([IsAuthenticated])
 def monthwise_view(request):
     user = request.user
-    
-    # Fetch bills for the current user
+    is_predicted = request.query_params.get('is_predicted', False)
     bills = Bill.objects.filter(user_id=user)
+    bills = bills.filter(is_predicted=is_predicted)
     
-    # Group bills by month and year
     monthwise_bills = {}
     for bill in bills:
         month_year_key = f"{bill.get_month_display()}-{bill.year}"
@@ -233,21 +212,18 @@ def monthwise_view(request):
             monthwise_bills[month_year_key] = []
         monthwise_bills[month_year_key].append(bill.units)
     
-    # Sort keys by year and month
     sorted_monthwise_keys = sorted(
-    monthwise_bills.keys(),
-    key=lambda x: (int(x.split('-')[1]), next((m[0] for m in Bill.MONTH_CHOICES if m[1] == x.split('-')[0]), None)))
-
+        monthwise_bills.keys(),
+        key=lambda x: (int(x.split('-')[1]), next((m[0] for m in MONTH_CHOICES if m[1] == x.split('-')[0]), None))
+    )
     
-    # Sort units within each group
     for key in sorted_monthwise_keys:
         monthwise_bills[key].sort()
     
-    # Create the final response dictionary
     sorted_monthwise_bills = {key: monthwise_bills[key] for key in sorted_monthwise_keys}
     
     return Response({'monthwise_units': sorted_monthwise_bills}, status=200)
-
+    
 # View to get the units of a particular room
 # FIXME: This view is not working as expected
 @api_view(['GET'])
@@ -287,10 +263,9 @@ def scrape_view(request):
                 # separate month and year from 'jan-23'
                 month, year = month.split('-')
                 month = month.capitalize()
-                month = MONTH_NAMES[month]
+                month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
                 year = int(year) + 2000
-                # create a bill object
-                # only if the bill does not exist
+                # create a bill object only if the bill does not exist
                 if not Bill.objects.filter(user_id=user, month=month, year=year, is_predicted=False).exists():
                     bill = Bill.objects.create(user_id=user, month=month, year=year, units=unit, is_predicted=False)
                     bill.save()               
