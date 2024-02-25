@@ -178,7 +178,7 @@ def predict_view(request):
     data = request.data
     try:
         month = data['month']
-        month = MONTH_NAMES[month]
+        month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
         year = data['year']
         bill = Bill.objects.filter(user_id=user, month=month, year=year, is_predicted=True)
         if bill:
