@@ -167,6 +167,7 @@ def input_view(request):
 
     return Response({'message': 'Input data saved successfully'}, status=200)
 
+
 # View to get the amount of units predicted from the Bill model
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
