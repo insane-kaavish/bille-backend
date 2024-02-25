@@ -124,7 +124,7 @@ def update_password_view(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def inputdata_view(request):
+def input_view(request):
     data = request.data
     user = request.user
 
@@ -199,7 +199,7 @@ def predict_view(request):
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def monthwise_view(request):
+def months_view(request):
     user = request.user
     is_predicted = request.query_params.get('is_predicted', False)
     bills = Bill.objects.filter(user_id=user)
@@ -224,23 +224,57 @@ def monthwise_view(request):
     
     return Response({'monthwise_units': sorted_monthwise_bills}, status=200)
     
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def rooms_view(request):
+    user = request.user
+    rooms = Room.objects.filter(user_id=user)
+    room_data = []
+    for room in rooms:
+        appliances = Appliance.objects.filter(room_id=room)
+        total_usage = 0
+        for appliance in appliances:
+            usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
+            total_usage += usage.units if usage is not None else 0 
+        room_data.append({
+            'id': room.id,
+            'tag': room.tag,
+            'alias': room.alias,
+            'usage': total_usage,
+        })
+    return Response(room_data, status=200)
+
 # View to get the units of a particular room
 # FIXME: This view is not working as expected
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def roomwise_view(request):
-    # user_id = request.user
+def room_view(request):
     room_id = request.query_params.get('room_id') 
     try:
         room = Room.objects.get(id=room_id)
         appliances = Appliance.objects.filter(room_id=room)
-        units = 0
+        room_data = {
+            'id': room.id,
+            'tag': room.tag,
+            'alias': room.alias,
+            'appliances': []
+        }
+        total_usage = 0
         for appliance in appliances:
             usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
             if usage is not None:
-                units += usage.units
-        return Response({'units': units}, status=200)
+                total_usage += usage.units
+            room_data['appliances'].append({
+                'id': appliance.id,
+                'alias': appliance.alias,
+                'category': appliance.category,
+                'sub_category': appliance.sub_category,
+                'usage': usage.units if usage is not None else 0
+            })
+        room_data['usage'] = total_usage
+        return Response(room_data, status=200)
     except Room.DoesNotExist:
         return Response({'error': 'Room not found'}, status=404)
     
