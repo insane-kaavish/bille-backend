@@ -13,9 +13,9 @@ from rest_framework.views import APIView
 from rest_framework import generics
 import random
 
-from .models import *
-from .serializers import *
-from .scraper import scrape, read_pdf
+from ..models import *
+from ..serializers import *
+from ..scraper import scrape, read_pdf
 
 # Create your views here.
 class CustomObtainAuthToken(ObtainAuthToken):
@@ -167,8 +167,6 @@ def input_view(request):
 
     return Response({'message': 'Input data saved successfully'}, status=200)
 
-    
-
 # View to get the amount of units predicted from the Bill model
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -223,61 +221,7 @@ def months_view(request):
     sorted_monthwise_bills = {key: monthwise_bills[key] for key in sorted_monthwise_keys}
     
     return Response({'monthwise_units': sorted_monthwise_bills}, status=200)
-    
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def rooms_view(request):
-    user = request.user
-    rooms = Room.objects.filter(user_id=user)
-    room_data = []
-    for room in rooms:
-        appliances = Appliance.objects.filter(room_id=room)
-        total_usage = 0
-        for appliance in appliances:
-            usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
-            total_usage += usage.units if usage is not None else 0 
-        room_data.append({
-            'id': room.id,
-            'tag': room.tag,
-            'alias': room.alias,
-            'usage': total_usage,
-        })
-    return Response(room_data, status=200)
 
-# View to get the units of a particular room
-# FIXME: This view is not working as expected
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def room_view(request):
-    room_id = request.query_params.get('room_id') 
-    try:
-        room = Room.objects.get(id=room_id)
-        appliances = Appliance.objects.filter(room_id=room)
-        room_data = {
-            'id': room.id,
-            'tag': room.tag,
-            'alias': room.alias,
-            'appliances': []
-        }
-        total_usage = 0
-        for appliance in appliances:
-            usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
-            if usage is not None:
-                total_usage += usage.units
-            room_data['appliances'].append({
-                'id': appliance.id,
-                'alias': appliance.alias,
-                'category': appliance.category,
-                'sub_category': appliance.sub_category,
-                'usage': usage.units if usage is not None else 0
-            })
-        room_data['usage'] = total_usage
-        return Response(room_data, status=200)
-    except Room.DoesNotExist:
-        return Response({'error': 'Room not found'}, status=404)
-    
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
