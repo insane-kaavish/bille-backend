@@ -99,30 +99,13 @@ REST_FRAMEWORK = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.environ.get('ENGINE'),
+        'NAME': os.environ.get('NAME'),
+        'USER': os.environ.get('USER'),
+        'PASSWORD': os.environ.get('PASSWORD'),
+        'HOST': os.environ.get('HOST'),
+        'PORT': os.environ.get('PORT'),
     }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': os.environ.get('PG_NAME'),
-    #     'USER': os.environ.get('PG_USER'),
-    #     'PASSWORD': os.environ.get('PG_PASSWORD'),
-    #     'HOST': os.environ.get('PG_HOST'),
-    #     'PORT': os.environ.get('PG_PORT'),
-    # }
-    # 'default': {
-    #     'ENGINE': 'djongo',
-    #     'NAME': os.environ.get('DB_NAME'),
-    #     'ENFORCE_SCHEMA': os.environ.get('DB_SCHEMA', False),
-    #     'CLIENT': {
-    #         'host': os.environ.get('MONGO_CONNECTION'),
-    #         'port': int(os.environ.get('DB_PORT', 27017)),
-    #         'username': os.environ.get('DB_USER'),
-    #         'password': os.environ.get('DB_PASSWORD'),
-    #         'authSource': os.environ.get('DB_AUTH_SOURCE'),
-    #         'authMechanism': os.environ.get('DB_AUTH_MECHANISM'),
-    #     }
-    # }
 }
 
 
