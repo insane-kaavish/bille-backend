@@ -22,15 +22,17 @@ MONTH_CHOICES = [
 
 ]
 
-# I want an object where each month has a corresponding per_unit_cost factor
 class MonthlyAdjustment(models.Model):
     id = models.AutoField(primary_key=True)
     month = models.IntegerField(choices=MONTH_CHOICES)
-    adj_factor = models.FloatField()
+    adj_factor = models.FloatField(default=0.0)
     updated_at = models.DateTimeField(auto_now=True) 
 
     def __str__(self):
         return f'{self.month}'
+    
+for month, _ in MONTH_CHOICES:
+    MonthlyAdjustment.objects.get_or_create(month=month)
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True) # changes email to unique and blank to false
