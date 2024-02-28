@@ -74,29 +74,42 @@ def process_single_pdf(pdf_file_path):
     except Exception as e:
         logging.error("Error processing %s: %s", pdf_file_path, str(e))
 
-def wait_for_download(directory):
+def wait_for_download(account_no, directory, timeout=300):
+    """
+    Wait for downloads to finish with a timeout.
+    :param directory: The path to the directory where files are downloaded.
+    :param timeout: Maximum time to wait for downloads to finish (in seconds).
+    """
+    end_time = time.time() + timeout
     while True:
-        if not len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.crdownload')]):
-            break
-        time.sleep(5)
+        # Check for any .crdownload files in the directory
+        if not any(f.endswith('.crdownload') and f.startswith(account_no) for f in os.listdir(directory)):
+            # Check if at least one PDF file is present (optional, depending on your case)
+            if any(f.endswith('.pdf') for f in os.listdir(directory)):
+                break
+        time.sleep(1)  # Sleep briefly to avoid high CPU usage
+        if time.time() > end_time:
+            raise Exception("Timeout reached: Download did not complete within the allotted time.")
         
-def read_pdf():
+def read_pdf(account_no):
     directory = os.path.join(os.getcwd(), "bills")
     units = {}
     for file in os.listdir(directory):
-        if file.endswith(".pdf"):
+        if file.startswith(account_no) and file.endswith(".pdf"):
             data = process_single_pdf(os.path.join(directory, file))
             units.update(data)
     print(units)
     # delete all files in the directory
     for file in os.listdir(directory):
-        os.remove(os.path.join(directory, file))
+        if file.startswith(account_no) and file.endswith(".pdf"):
+            os.remove(os.path.join(directory, file))
     return units
 
 def scrape(account_number):
     # Set up the web driver
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
     options.add_experimental_option("prefs", {
@@ -141,7 +154,7 @@ def scrape(account_number):
             logging.error("No alert present")
         return Response({'message': 'Account number not found'}, status=404)
     
-    wait_for_download(os.path.join(os.getcwd(), "bills"))
+    wait_for_download(account_number, os.path.join(os.getcwd(), "bills"))
     
     driver.quit()
     return Response({'message': 'Web scraping successful'}, status=200)

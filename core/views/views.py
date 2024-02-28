@@ -253,35 +253,20 @@ def months_view(request):
     
     return Response({'monthwise_units': sorted_monthwise_bills}, status=200)
 
+from django.http import JsonResponse
+from ..tasks import scrape_task
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def scrape_view(request):
-    try:
-        user = request.user
-        print('Trying to scrape')
-        if not user.ke_num:
-            return Response({'error': 'KE number not found'}, status=400)
-        response = scrape(user.ke_num)
-        if response.status_code == 501:
-            response = scrape(user.ke_num)
-        units = read_pdf()
-        if len(units):
-            # store the units in the database
-            for month, unit in units.items():
-                # separate month and year from 'jan-23'
-                month, year = month.split('-')
-                month = month.capitalize()
-                month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
-                year = int(year) + 2000
-                # create a bill object only if the bill does not exist
-                if not Bill.objects.filter(user=user, month=month, year=year, is_predicted=False).exists():
-                    bill = Bill.objects.create(user=user, month=month, year=year, units=unit, is_predicted=False)
-                    bill.save()               
-            return Response({'message': 'Scraping successful'}, status=200)
-        return Response({'message': 'Scraping failed'}, status=404)
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
+    user = request.user
+    if not user.ke_num:
+        return JsonResponse({'error': 'KE number not found'}, status=400)
+    
+    scrape_task.delay(user.id)
+    
+    return JsonResponse({'message': 'Scraping initiated'}, status=202)
         
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
