@@ -28,8 +28,6 @@ def scrape_task(user_id):
             units = read_pdf(user.ke_num)
             if units:
                 # Store units in the database...
-                # store the units in the database
-                print('units: ', units)
                 for month, unit in units.items():
                     # separate month and year from 'jan-23'
                     month, year = month.split('-')
