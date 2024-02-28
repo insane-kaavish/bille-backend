@@ -27,5 +27,7 @@ urlpatterns = [
     path('update_appliance/', update_appliance_view),
     path('delete_appliance/', delete_appliance_view),
     
+    path('update_adjustment/', update_monthly_adjustment_view),
+    path('reset_adjustments/', reset_monthly_adjustment_view),
     path('scrape/', scrape_view),
 ]
