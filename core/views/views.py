@@ -234,6 +234,6 @@ def scrape_view(request):
     if not user.ke_num:
         return JsonResponse({'error': 'KE number not found'}, status=400)
     
-    scrape_task.delay(user.id, user.ke_num)
+    scrape_task.delay(user.id)
     
     return JsonResponse({'message': 'Scraping initiated'}, status=202)

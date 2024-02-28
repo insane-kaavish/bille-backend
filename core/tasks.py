@@ -18,26 +18,29 @@ MONTH_CHOICES = [
 ]
 
 @shared_task
-def scrape_task(user_id, account_number):
-    user = CustomUser.objects.get(id=user_id)  # Make sure to import User
-    response = scrape(account_number)
-    # Assuming scrape is adjusted to return JSON or some other data structure instead of a Response object
-    print("response: ", response)
-    if response.get('status') == 200:
-        units = read_pdf()
-        if units:
-            # Store units in the database...
-            # store the units in the database
-            print('units: ', units)
-            for month, unit in units.items():
-                # separate month and year from 'jan-23'
-                month, year = month.split('-')
-                month = month.capitalize()
-                month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
-                year = int(year) + 2000
-                # create a bill object only if the bill does not exist
-                if not Bill.objects.filter(user=user, month=month, year=year, is_predicted=False).exists():
-                    bill = Bill.objects.create(user=user, month=month, year=year, units=unit, is_predicted=False)
-                    bill.save()               
-            return {'status': 'success', 'message': 'Scraping successful'}
-    return {'status': 'failure', 'message': 'Scraping failed'}
+def scrape_task(user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+        response = scrape(user.ke_num)
+        if response.status_code == 501:
+            response = scrape(user.ke_num)
+        if response.status_code == 200:
+            units = read_pdf(user.ke_num)
+            if units:
+                # Store units in the database...
+                # store the units in the database
+                print('units: ', units)
+                for month, unit in units.items():
+                    # separate month and year from 'jan-23'
+                    month, year = month.split('-')
+                    month = month.capitalize()
+                    month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
+                    year = int(year) + 2000
+                    # create a bill object only if the bill does not exist
+                    if not Bill.objects.filter(user=user, month=month, year=year, is_predicted=False).exists():
+                        bill = Bill.objects.create(user=user, month=month, year=year, units=unit, is_predicted=False)
+                        bill.save()               
+                return {'status': 'success', 'message': 'Scraping successful'}
+        return {'status': 'failure', 'message': 'Scraping failed'}
+    except Exception as e:
+        return {'status': 'failure', 'message': str(e)}

@@ -74,7 +74,7 @@ def process_single_pdf(pdf_file_path):
     except Exception as e:
         logging.error("Error processing %s: %s", pdf_file_path, str(e))
 
-def wait_for_download(directory, timeout=300):
+def wait_for_download(account_no, directory, timeout=300):
     """
     Wait for downloads to finish with a timeout.
     :param directory: The path to the directory where files are downloaded.
@@ -83,7 +83,7 @@ def wait_for_download(directory, timeout=300):
     end_time = time.time() + timeout
     while True:
         # Check for any .crdownload files in the directory
-        if not any(f.endswith('.crdownload') for f in os.listdir(directory)):
+        if not any(f.endswith('.crdownload') and f.startswith(account_no) for f in os.listdir(directory)):
             # Check if at least one PDF file is present (optional, depending on your case)
             if any(f.endswith('.pdf') for f in os.listdir(directory)):
                 break
@@ -91,17 +91,18 @@ def wait_for_download(directory, timeout=300):
         if time.time() > end_time:
             raise Exception("Timeout reached: Download did not complete within the allotted time.")
         
-def read_pdf():
+def read_pdf(account_no):
     directory = os.path.join(os.getcwd(), "bills")
     units = {}
     for file in os.listdir(directory):
-        if file.endswith(".pdf"):
+        if file.startswith(account_no) and file.endswith(".pdf"):
             data = process_single_pdf(os.path.join(directory, file))
             units.update(data)
     print(units)
     # delete all files in the directory
     for file in os.listdir(directory):
-        os.remove(os.path.join(directory, file))
+        if file.startswith(account_no) and file.endswith(".pdf"):
+            os.remove(os.path.join(directory, file))
     return units
 
 def scrape(account_number):
@@ -153,7 +154,7 @@ def scrape(account_number):
             logging.error("No alert present")
         return Response({'message': 'Account number not found'}, status=404)
     
-    wait_for_download(os.path.join(os.getcwd(), "bills"))
+    wait_for_download(account_number, os.path.join(os.getcwd(), "bills"))
     
     driver.quit()
     return Response({'message': 'Web scraping successful'}, status=200)
