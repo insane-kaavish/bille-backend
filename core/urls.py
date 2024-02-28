@@ -30,4 +30,5 @@ urlpatterns = [
     path('update_adjustment/', update_monthly_adjustment_view),
     path('reset_adjustments/', reset_monthly_adjustment_view),
     path('scrape/', scrape_view),
+    path('task_status/', get_task_status),
 ]

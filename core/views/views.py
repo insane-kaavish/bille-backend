@@ -263,10 +263,28 @@ def scrape_view(request):
     user = request.user
     if not user.ke_num:
         return JsonResponse({'error': 'KE number not found'}, status=400)
-    
-    scrape_task.delay(user.id)
-    
-    return JsonResponse({'message': 'Scraping initiated'}, status=202)
+    # In your view or wherever you dispatch the task
+    task = scrape_task.delay(user.id)
+    task_id = task.id  # This is the task ID you can store or send to the frontend
+
+    response = {
+        'message': 'Scraping initiated',
+        'task_id': task_id
+    }
+    return JsonResponse(response, status=202)
+
+from celery.result import AsyncResult
+
+@api_view(['GET'])
+def get_task_status(request):
+    task_id = request.query_params.get('task_id')
+    task_result = AsyncResult(task_id)
+    return JsonResponse({
+        'task_id': task_id,
+        'status': task_result.status,
+        'result': task_result.result  # This will be None if the task is not finished
+    })
+
         
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])

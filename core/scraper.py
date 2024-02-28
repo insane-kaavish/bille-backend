@@ -109,7 +109,6 @@ def scrape(account_number):
     # Set up the web driver
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
     options.add_experimental_option("prefs", {
