@@ -181,14 +181,28 @@ def predict_view(request):
         year = data['year']
         bill = Bill.objects.filter(user=user, month=month, year=year, is_predicted=True)
         if bill:
-            return Response({'units': bill[0].units}, status=200)
+            units = bill[0].units
         else:
             # TODO: Predict units and return
-            units = random.randint(100, 500)
+            units = random.randint(0, 500)
             bill = Bill.objects.create(user=user, month=month, year=year, units=units, is_predicted=True)
             bill.save()
-            return Response({'units': units}, status=200)
-            return Response({'error': 'No bills found for the current user'}, status=404)
+        if units <= 100:
+            per_unit_cost = 10.00
+        elif units <= 200:
+            per_unit_cost = 15.00
+        elif units <= 300:
+            per_unit_cost = 20.00
+        elif units <= 400:
+            per_unit_cost = 25.00
+        else:
+            per_unit_cost = 30.00
+        response = {
+            'units': units,
+            'per_unit_cost': per_unit_cost,
+            'total_cost': units * per_unit_cost
+        }
+        return Response(response, status=200)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found for the current user'}, status=404)
     except KeyError:

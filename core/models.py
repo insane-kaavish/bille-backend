@@ -22,6 +22,16 @@ MONTH_CHOICES = [
 
 ]
 
+# I want an object where each month has a corresponding per_unit_cost factor
+class MonthlyAdjustment(models.Model):
+    id = models.AutoField(primary_key=True)
+    month = models.IntegerField(choices=MONTH_CHOICES)
+    adj_factor = models.FloatField()
+    updated_at = models.DateTimeField(auto_now=True) 
+
+    def __str__(self):
+        return f'{self.month}'
+
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True) # changes email to unique and blank to false
     id = models.AutoField(primary_key=True)
@@ -67,8 +77,8 @@ class Room(models.Model):
     tag = models.CharField(max_length=2, choices=TAG_CHOICES)
     alias = models.CharField(max_length=50)
     created_at = models.DateTimeField(default=now, editable=False)
-    updated_at = models.DateTimeField(default=now, editable=False)
-
+    updated_at = models.DateTimeField(auto_now=True) 
+    
 class Appliance(models.Model):
     CATEGORY_CHOICES = [ 
         ('Iron', 'Iron'),
@@ -86,7 +96,7 @@ class Appliance(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     sub_category = models.CharField(null = True, max_length=50)
     created_at = models.DateTimeField(default=now, editable=False)
-    updated_at = models.DateTimeField(default=now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True) 
     
 class Usage(models.Model):
     TYPE_CHOICES = [

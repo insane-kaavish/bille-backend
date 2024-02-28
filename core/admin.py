@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, Bill, Room, Appliance, Usage, Message
+from .models import CustomUser, Bill, Room, Appliance, Usage, Message, MonthlyAdjustment
 
 # Register your models here.
 admin.site.register(CustomUser)
