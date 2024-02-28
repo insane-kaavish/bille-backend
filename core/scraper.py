@@ -74,11 +74,22 @@ def process_single_pdf(pdf_file_path):
     except Exception as e:
         logging.error("Error processing %s: %s", pdf_file_path, str(e))
 
-def wait_for_download(directory):
+def wait_for_download(directory, timeout=300):
+    """
+    Wait for downloads to finish with a timeout.
+    :param directory: The path to the directory where files are downloaded.
+    :param timeout: Maximum time to wait for downloads to finish (in seconds).
+    """
+    end_time = time.time() + timeout
     while True:
-        if not len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.crdownload')]):
-            break
-        time.sleep(5)
+        # Check for any .crdownload files in the directory
+        if not any(f.endswith('.crdownload') for f in os.listdir(directory)):
+            # Check if at least one PDF file is present (optional, depending on your case)
+            if any(f.endswith('.pdf') for f in os.listdir(directory)):
+                break
+        time.sleep(1)  # Sleep briefly to avoid high CPU usage
+        if time.time() > end_time:
+            raise Exception("Timeout reached: Download did not complete within the allotted time.")
         
 def read_pdf():
     directory = os.path.join(os.getcwd(), "bills")
@@ -97,6 +108,7 @@ def scrape(account_number):
     # Set up the web driver
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
     options.add_experimental_option("prefs", {

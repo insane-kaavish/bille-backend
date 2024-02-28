@@ -22,12 +22,13 @@ def scrape_task(user_id, account_number):
     user = CustomUser.objects.get(id=user_id)  # Make sure to import User
     response = scrape(account_number)
     # Assuming scrape is adjusted to return JSON or some other data structure instead of a Response object
-    print('Task executed')
+    print("response: ", response)
     if response.get('status') == 200:
         units = read_pdf()
         if units:
             # Store units in the database...
             # store the units in the database
+            print('units: ', units)
             for month, unit in units.items():
                 # separate month and year from 'jan-23'
                 month, year = month.split('-')

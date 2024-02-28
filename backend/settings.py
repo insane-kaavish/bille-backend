@@ -125,8 +125,23 @@ DATABASES = {
     # }
 }
 
-CELERY_BROKER_URL = 'redis://172.25.55.124:6379/0'
-CELERY_RESULT_BACKEND = 'redis://172.25.55.124:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Karachi'
+CELERY_ENABLE_UTC = True
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_TASK_SOFT_TIME_LIMIT = 30 * 60
+CELERY_BEAT_SCHEDULE = {
+    'add-every-30-seconds': {
+        'task': 'core.tasks.add',
+        'schedule': 30.0,
+        'args': (16, 16)
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
