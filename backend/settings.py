@@ -111,19 +111,6 @@ DATABASES = {
         'HOST': os.environ.get('PG_HOST'),
         'PORT': os.environ.get('PG_PORT'),
     }
-    # 'default': {
-    #     'ENGINE': 'djongo',
-    #     'NAME': os.environ.get('DB_NAME'),
-    #     'ENFORCE_SCHEMA': os.environ.get('DB_SCHEMA', False),
-    #     'CLIENT': {
-    #         'host': os.environ.get('MONGO_CONNECTION'),
-    #         'port': int(os.environ.get('DB_PORT', 27017)),
-    #         'username': os.environ.get('DB_USER'),
-    #         'password': os.environ.get('DB_PASSWORD'),
-    #         'authSource': os.environ.get('DB_AUTH_SOURCE'),
-    #         'authMechanism': os.environ.get('DB_AUTH_MECHANISM'),
-    #     }
-    # }
 }
 
 CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
