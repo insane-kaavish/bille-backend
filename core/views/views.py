@@ -62,7 +62,8 @@ def signup_view(request):
         password = data['password']
         first_name = data['first_name'] if 'first_name' in data else ''
         last_name = data['last_name'] if 'last_name' in data else ''
-        user = CustomUser.objects.create_user(email=email, password=password, first_name=first_name, last_name=last_name)
+        ke_num = data['ke_num'] if 'ke_num' in data else ''
+        user = CustomUser.objects.create_user(email=email, password=password, first_name=first_name, last_name=last_name, ke_num=ke_num)
     except IntegrityError:
         return Response({'error': 'User already exists'}, status=400)
     except KeyError:
@@ -138,29 +139,32 @@ def input_view(request):
     for room_data in rooms_data:
         # Extract room details
         tag = room_data.get('tag')
+        room_tag = RoomTag.objects.get_or_create(tag=tag)[0]
         alias = room_data.get('alias')
         appliances_data = room_data.get('appliances', [])
 
         # Create room
-        room = Room.objects.create(user=user, tag=tag, alias=alias)
+        room = Room.objects.create(user=user, tag=room_tag, alias=alias)
 
-        total_usage = 0
+        total_units = 0
 
         # Process appliances data
         for appliance_data in appliances_data:
             # Extract appliance details
-            category = appliance_data.get('category')
-            sub_category = appliance_data.get('sub_category')
+            category_data = appliance_data.get('category')
+            sub_category_data = appliance_data.get('sub_category')
             alias = appliance_data.get('alias')
             usage = appliance_data.get('usage')
-            total_usage += int(usage)
+            units = usage * SubCategory.objects.get(name=sub_category_data, category__name=category_data).wattage / 1000
+            total_units += int(units)
 
-            # Create appliance
-            appliance = Appliance.objects.create(room=room, category=category, sub_category=sub_category ,alias=alias)
+            category, _ = Category.objects.get_or_create(name=category_data)
+            sub_category, _ = SubCategory.objects.get_or_create(name=sub_category_data, category=category)
+            appliance = Appliance.objects.create(room=room, category=sub_category.category, sub_category=sub_category, alias=alias)
 
             # Create usage record
-            Usage.objects.create(appliance=appliance, units=usage)
+            Usage.objects.create(appliance=appliance, units=units)
         
-        Usage.objects.create(room=room, units=total_usage)
+        Usage.objects.create(room=room, units=total_units)
 
     return Response({'message': 'Input data saved successfully'}, status=200)

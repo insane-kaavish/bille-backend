@@ -55,7 +55,7 @@ class Category(models.Model):
 class SubCategory(models.Model):
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    wattage = models.IntegerField()
+    wattage = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ('category', 'name')
@@ -104,9 +104,7 @@ class Usage(models.Model):
     appliance = models.ForeignKey(Appliance, null = True, blank = True, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, null = True, blank = True, on_delete=models.CASCADE)
     units = models.IntegerField()
-    predict_date = models.DateTimeField(null = True)
-    month = models.IntegerField(null = True, choices=MONTH_CHOICES)
-    year = models.IntegerField(null = True)
+    predict_date = models.DateTimeField(default=now, editable=False)
     type = models.CharField(null = True, max_length=1, choices=TYPE_CHOICES)
 
 class Message(models.Model):

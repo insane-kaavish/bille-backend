@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from core.models import Appliance, Usage, Room
+from core.models import Appliance, Usage, Room, Category, SubCategory
 
 # View to get all the appliances
 @api_view(['GET'])
@@ -56,8 +56,11 @@ def update_appliance_view(request):
         appliance_id = data['appliance_id']
         appliance = Appliance.objects.get(id=appliance_id)
         appliance.alias = data['alias'] if 'alias' in data else appliance.alias
-        appliance.category = data['category'] if 'category' in data else appliance.category
-        appliance.sub_category = data['sub_category'] if 'sub_category' in data else appliance.sub_category
+        category, _ = Category.objects.get_or_create(name=data.get('category', appliance.category.name))
+        sub_category = data.get('sub_category')
+        if sub_category is not None:
+            sub_category, _ = SubCategory.objects.get_or_create(name=sub_category, category=category)
+            appliance.sub_category = sub_category
         appliance.save()
         return Response({'message': 'Appliance updated successfully'}, status=200)
     except Appliance.DoesNotExist:
