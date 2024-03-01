@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from core.models import Appliance, Usage, Room, Category, SubCategory
 
 # View to get all the appliances
@@ -81,3 +81,17 @@ def delete_appliance_view(request):
         return Response({'message': 'Appliance deleted successfully'}, status=200)
     except Appliance.DoesNotExist:
         return Response({'error': 'Appliance not found'}, status=404)
+
+
+# View to get all the categories
+@api_view(['GET'])
+@permission_classes([AllowAny],)  
+def categories_view(request):
+    categories = Category.objects.all()
+    category_data = []
+    for category in categories:
+        category_data.append({
+            'name': category.name,
+            'sub_categories': [sub_category.name for sub_category in SubCategory.objects.filter(category=category)]
+        })
+    return Response(category_data, status=200)

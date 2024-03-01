@@ -23,11 +23,13 @@ urlpatterns = [
     path('room/', room_view),
     path('update_room/', update_room_view),
     path('delete_room/', delete_room_view),
+    path('room_tags/', room_tags_view),
 
     path('appliances/', appliances_view),
     path('appliance/', appliance_view),    
     path('update_appliance/', update_appliance_view),
     path('delete_appliance/', delete_appliance_view),
+    path('categories/', categories_view),
     
     path('update_adjustment/', update_monthly_adjustment_view),
     path('reset_adjustments/', reset_monthly_adjustment_view),

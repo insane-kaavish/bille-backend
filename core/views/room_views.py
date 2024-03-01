@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from core.models import Room, Appliance, Usage, RoomTag, Category, SubCategory
 import math
 
@@ -133,3 +133,16 @@ def delete_room_view(request):
         return Response({'message': 'Room deleted successfully'}, status=200)
     except Room.DoesNotExist:
         return Response({'error': 'Room not found'}, status=404)
+
+# View to get all the tags
+@api_view(['GET'])
+@permission_classes([AllowAny],)  
+def room_tags_view(request):
+    tags = RoomTag.objects.all()
+    tag_data = []
+    for tag in tags:
+        tag_data.append({
+            'tag': tag.tag,
+            'description': tag.description
+        })
+    return Response(tag_data, status=200)
