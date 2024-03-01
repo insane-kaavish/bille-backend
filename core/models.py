@@ -4,24 +4,9 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from .managers import CustomUserManager
+from .months import MONTH_CHOICES
 
 # Create your models here.
-MONTH_CHOICES = [
-    (1, 'Jan'),
-    (2, 'Feb'),
-    (3, 'Mar'),
-    (4, 'Apr'),
-    (5, 'May'),
-    (6, 'Jun'),
-    (7, 'Jul'),
-    (8, 'Aug'),
-    (9, 'Sep'),
-    (10, 'Oct'),
-    (11, 'Nov'),
-    (12, 'Dec')
-
-]
-
 class MonthlyAdjustment(models.Model):
     id = models.AutoField(primary_key=True)
     month = models.IntegerField(choices=MONTH_CHOICES)
@@ -30,9 +15,6 @@ class MonthlyAdjustment(models.Model):
 
     def __str__(self):
         return f'{self.month}'
-    
-for month, _ in MONTH_CHOICES:
-    MonthlyAdjustment.objects.get_or_create(month=month)
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True) # changes email to unique and blank to false
@@ -63,43 +45,55 @@ class Bill(models.Model):
     year = models.IntegerField()
     units = models.IntegerField()
     is_predicted = models.BooleanField()
+    
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class SubCategory(models.Model):
+    category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    wattage = models.IntegerField()
+
+    class Meta:
+        unique_together = ('category', 'name')
+
+    def __str__(self):
+        return f"{self.category.name} - {self.name}"
+
+class RoomTag(models.Model):
+    tag = models.CharField(max_length=2, unique=True)
+    description = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.tag} - {self.description}"
 
 class Room(models.Model):
-    TAG_CHOICES = [
-        ('LR', 'Living Room'),
-        ('B', 'Bedroom'),
-        ('K', 'Kitchen'),
-        ('L', 'Lounge'),
-        ('S', 'Store'),
-        ('O', 'Others')
-     ]   
-
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    tag = models.CharField(max_length=2, choices=TAG_CHOICES)
+    tag = models.ForeignKey(RoomTag, on_delete=models.CASCADE)
     alias = models.CharField(max_length=50)
     created_at = models.DateTimeField(default=now, editable=False)
-    updated_at = models.DateTimeField(auto_now=True) 
-    
-class Appliance(models.Model):
-    CATEGORY_CHOICES = [ 
-        ('Iron', 'Iron'),
-        ('Air Conditioner', 'Air Conditioner'),
-        ('Refrigerator', 'Refrigerator'),
-        ('Freezer', 'Freezer'),
-        ('Washing Machine', 'Washing Machine'),
-        ('Water Dispenser', 'Water Dispenser'),
-        ('Others', 'Others')
-    ]
+    updated_at = models.DateTimeField(auto_now=True)
 
+class Appliance(models.Model):
     id = models.AutoField(primary_key=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     alias = models.CharField(max_length=50)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-    sub_category = models.CharField(null = True, max_length=50)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, null=True, blank=True)
+    wattage = models.IntegerField(blank=True, null=True)
     created_at = models.DateTimeField(default=now, editable=False)
-    updated_at = models.DateTimeField(auto_now=True) 
+    updated_at = models.DateTimeField(auto_now=True)
     
+    # Automatically update wattage when sub_category is updated
+    def save(self, *args, **kwargs):
+        if self.sub_category:
+            self.wattage = self.sub_category.wattage
+        super().save(*args, **kwargs)
+
 class Usage(models.Model):
     TYPE_CHOICES = [
         ('R', 'Room'),
