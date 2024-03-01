@@ -1,6 +1,6 @@
 from celery import shared_task
 from .models import CustomUser, Bill
-from .scraper import scrape, read_pdf  # Assuming scrape logic is refactored into a separate file
+from .utils.scraper import scrape, read_pdf  # Assuming scrape logic is refactored into a separate file
 
 MONTH_CHOICES = [
     (1, 'Jan'),

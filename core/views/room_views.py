@@ -4,6 +4,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from core.models import Room, Appliance, Usage, RoomTag, Category, SubCategory
 import math
+from ..utils.helper import *
 
 # View to get all the rooms
 @api_view(['GET'])
@@ -36,27 +37,22 @@ def room_view(request):
     room_id = request.query_params.get('room_id') 
     try:
         room = Room.objects.get(id=room_id)
-        appliances = Appliance.objects.filter(room=room)
-        room_data = {
+        appliances = room.appliance_set.all()
+        appliances_data = [{
+            'id': appliance.id,
+            'alias': appliance.alias,
+            'category': appliance.category.name,
+            'sub_category': appliance.sub_category.name if appliance.sub_category else None,
+            'units': get_latest_usage(appliance).units if get_latest_usage(appliance) else 0
+        } for appliance in appliances]
+        return Response({
             'id': room.id,
             'tag': room.tag.tag,
             'alias': room.alias,
-            'appliances': []
-        }
-        total_units = 0
-        for appliance in appliances:
-            usage = Usage.objects.filter(appliance=appliance).order_by('-predict_date').first()
-            if usage is not None:
-                total_units += usage.units
-            room_data['appliances'].append({
-                'id': appliance.id,
-                'alias': appliance.alias,
-                'category': appliance.category.name,
-                'sub_category': appliance.sub_category.name if appliance.sub_category is not None else None,
-                'units': usage.units if usage is not None else 0
-            })
-        room_data['units'] = total_units
-        return Response(room_data, status=200)
+            'appliances': appliances_data,
+            'units': calculate_total_units(appliances)
+        }, status=200)
+
     except Room.DoesNotExist:
         return Response({'error': 'Room not found'}, status=404)
     
@@ -65,56 +61,31 @@ def room_view(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_room_view(request):
-    user = request.user
     data = request.data
     try:
-        room_id = data['room_id']
-        room = Room.objects.get(id=room_id)
+        room = Room.objects.get(id=data['room_id'], user=request.user)  # Ensure the room belongs to the user
         room.alias = data.get('alias', room.alias)
         room.tag = RoomTag.objects.get(tag=data.get('tag', room.tag.tag))
         room.save()
-
-        appliances_data = data.get('appliances', [])
-        for appliance_data in appliances_data:
-            appliance_id = appliance_data.get('id')
-            if appliance_id is None:
-                # Create a new appliance
-                category, _ = Category.objects.get_or_create(name=appliance_data.get('category'))
-                sub_category, _ = SubCategory.objects.get_or_create(name=appliance_data.get('sub_category'), category=category)
-                appliance = Appliance.objects.create(
-                    alias=appliance_data.get('alias'),
-                    category=category,
-                    sub_category=sub_category
-                )
-            else:
-                # Update existing appliance
-                appliance = Appliance.objects.get(id=appliance_id)
-                appliance.alias = appliance_data.get('alias', appliance.alias)
-                category, _ = Category.objects.get_or_create(name=appliance_data.get('category', appliance.category.name))
-                sub_category = appliance_data.get('sub_category')
-                if sub_category is not None:
-                    sub_category, _ = SubCategory.objects.get_or_create(name=sub_category, category=category)
-                    appliance.sub_category = sub_category
-                appliance.save()
-            
-            # Create a new usage record for the appliance
-            units = math.ceil(appliance_data.get('usage', 0) * appliance.wattage / 1000)
-            usage = Usage.objects.create(appliance=appliance, units=units)
-            usage.save()
-            
-        appliances = Appliance.objects.filter(room=room)
         total_units = 0
-        for appliance in appliances:
-            usage = Usage.objects.filter(appliance=appliance).order_by('-predict_date').first()
-            total_units += usage.units if usage is not None else 0
-        
-        # Create a new usage record for the room
-        room_usage = Usage.objects.create(room=room, units=total_units)
-        room_usage.save()
-
-        return Response({'message': 'Room and appliance updated successfully'}, status=200)
+        for appliance_data in data.get('appliances', []):
+            appliance_id = appliance_data.get('id')
+            if appliance_id:
+                appliance = Appliance.objects.get(id=appliance_id, room=room)
+                update_appliance_data(appliance, appliance_data)
+            else:
+                # Create new appliance
+                category, sub_category = get_or_create_category_sub_category(appliance_data['category'], appliance_data.get('sub_category'))
+                appliance = Appliance.objects.create(room=room, alias=appliance_data['alias'], category=category, sub_category=sub_category)
+            units = appliance_data.get('usage', 0)
+            calculate_and_save_usage(appliance, units)
+            total_units += units
+        calculate_and_save_usage(room, total_units, is_room=True)
+        return Response({'message': 'Room and appliances updated successfully'}, status=200)
     except Room.DoesNotExist:
         return Response({'error': 'Room not found'}, status=404)
+    except RoomTag.DoesNotExist:
+        return Response({'error': 'Invalid room tag'}, status=400)
     except Appliance.DoesNotExist:
         return Response({'error': 'Appliance not found'}, status=404)
     except KeyError:

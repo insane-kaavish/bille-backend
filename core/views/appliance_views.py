@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from core.models import Appliance, Usage, Room, Category, SubCategory
+from ..utils.helper import *
 
 # View to get all the appliances
 @api_view(['GET'])
@@ -50,18 +51,10 @@ def appliance_view(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_appliance_view(request):
-    user = request.user
     data = request.data
     try:
-        appliance_id = data['appliance_id']
-        appliance = Appliance.objects.get(id=appliance_id)
-        appliance.alias = data['alias'] if 'alias' in data else appliance.alias
-        category, _ = Category.objects.get_or_create(name=data.get('category', appliance.category.name))
-        sub_category = data.get('sub_category')
-        if sub_category is not None:
-            sub_category, _ = SubCategory.objects.get_or_create(name=sub_category, category=category)
-            appliance.sub_category = sub_category
-        appliance.save()
+        appliance = Appliance.objects.get(id=data['appliance_id'], room__user=request.user)  # Ensure the appliance belongs to the user
+        update_appliance_data(appliance, data)
         return Response({'message': 'Appliance updated successfully'}, status=200)
     except Appliance.DoesNotExist:
         return Response({'error': 'Appliance not found'}, status=404)

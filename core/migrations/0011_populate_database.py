@@ -2,7 +2,7 @@
 
 # Updated by Ali Asghar on 2024-03-01 20:00
 from django.db import migrations
-from ..months import MONTH_CHOICES
+from ..utils.months import MONTH_CHOICES
 
 def add_category_subcategory(apps, schema_editor):
     Category = apps.get_model('core', 'Category')

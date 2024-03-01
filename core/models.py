@@ -4,7 +4,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from .managers import CustomUserManager
-from .months import MONTH_CHOICES
+from .utils.months import MONTH_CHOICES
 
 # Create your models here.
 class MonthlyAdjustment(models.Model):
