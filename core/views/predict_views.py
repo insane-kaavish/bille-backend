@@ -28,48 +28,52 @@ def predict_view(request):
             token = os.environ.get('AZURE_BEARER_TOKEN')
             # get the units of the previous 17 months
             bills = Bill.objects.filter(user=user, is_predicted=False).order_by('-year', '-month')[:17]
-            units = [bill.units for bill in bills]
-            # Prepare the data to send in the request body
-            data =  {
-                "input_data": {
-                    "columns": [
-                    "Aug-22",
-                    "Sep-22",
-                    "Oct-22",
-                    "Nov-22",
-                    "Dec-22",
-                    "Jan-23",
-                    "Feb-23",
-                    "Mar-23",
-                    "Apr-23",
-                    "May-23",
-                    "Jun-23",
-                    "Jul-23",
-                    "Aug-23",
-                    "Sep-23",
-                    "Oct-23",
-                    "Nov-23",
-                    "Dec-23"
-                    ],
-                    "index": [0],
-                    "data": []
-                    }
-                }
-            data['input_data']['data'].append(units)
-            headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ token)}
-            # Make the POST request to the Azure ML model
-            response = requests.post(url, json=data, headers=headers)
-            print(response.json())
-            # Check if the request was successful
-            if response.status_code == 200:
-                # Get the predicted units from the response
-                units = response.json()[0]
-            else:
-                # Handle the error case
-                # Set a default value for units
+            # if bills dont exist, return 0
+            if not bills:
                 units = 0
-            bill = Bill.objects.create(user=user, month=month, year=year, units=units, is_predicted=True)
-            bill.save()
+            else:
+                units = [bill.units for bill in bills]
+                # Prepare the data to send in the request body
+                data =  {
+                    "input_data": {
+                        "columns": [
+                        "Aug-22",
+                        "Sep-22",
+                        "Oct-22",
+                        "Nov-22",
+                        "Dec-22",
+                        "Jan-23",
+                        "Feb-23",
+                        "Mar-23",
+                        "Apr-23",
+                        "May-23",
+                        "Jun-23",
+                        "Jul-23",
+                        "Aug-23",
+                        "Sep-23",
+                        "Oct-23",
+                        "Nov-23",
+                        "Dec-23"
+                        ],
+                        "index": [0],
+                        "data": []
+                        }
+                    }
+                data['input_data']['data'].append(units)
+                headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ token)}
+                # Make the POST request to the Azure ML model
+                response = requests.post(url, json=data, headers=headers)
+                print(response.json())
+                # Check if the request was successful
+                if response.status_code == 200:
+                    # Get the predicted units from the response
+                    units = response.json()[0]
+                else:
+                    # Handle the error case
+                    # Set a default value for units
+                    units = 0
+                bill = Bill.objects.create(user=user, month=month, year=year, units=units, is_predicted=True)
+                bill.save()
         if units <= 100:
             per_unit_cost = 10.00
         elif units <= 200:

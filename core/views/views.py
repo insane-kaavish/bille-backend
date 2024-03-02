@@ -48,7 +48,7 @@ def login_view(request):
     if user is not None:
         login(request, user)
         # Redirect to a success page.
-        return Response({'login successfully'}, status = 201)
+        return Response({'login successfully'}, status = 200)
     else:
         # Return an 'invalid login' error message.
         return Response({'login failed'}, status = 401)
@@ -65,13 +65,13 @@ def signup_view(request):
         ke_num = data['ke_num'] if 'ke_num' in data else ''
         user = CustomUser.objects.create_user(email=email, password=password, first_name=first_name, last_name=last_name, ke_num=ke_num)
     except IntegrityError:
-        return Response({'error': 'User already exists'}, status=400)
+        return Response({'error': 'User already exists'}, status=409)
     except KeyError:
         return Response({'error': 'Email, password are required'}, status=400)
     if user is not None:
         user.save()
-        return Response({'user created successfully'}, status = 200)
-    return Response({'user created failed'}, status = 201)
+        return Response({'user created successfully'}, status = 201)
+    return Response({'user created failed'}, status = 500)
 
 
 #api to contact-us, where the user gives name, email, and the message
@@ -85,8 +85,8 @@ def message_view(request):
     contact = Message.objects.create(user=user, message=message)
     if contact is not None:
         contact.save()
-        return Response({'contact message saved successfully'}, status = 200)
-    return Response({'contact message saved failed'}, status = 201)
+        return Response({'contact message saved successfully'}, status = 201)
+    return Response({'contact message saved failed'}, status = 400)
 
 # View to update the user details
 @api_view(['PUT'])
@@ -167,4 +167,4 @@ def input_view(request):
         
         Usage.objects.create(room=room, units=total_units)
 
-    return Response({'message': 'Input data saved successfully'}, status=200)
+    return Response({'message': 'Input data saved successfully'}, status=201)

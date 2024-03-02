@@ -24,6 +24,8 @@ def scrape_task(user_id):
         response = scrape(user.ke_num)
         if response.status_code == 501:
             response = scrape(user.ke_num)
+        if response.status_code == 404:
+            return {'status': 404, 'message': 'KE number not found'}
         if response.status_code == 200:
             units = read_pdf(user.ke_num)
             if units:
@@ -38,7 +40,7 @@ def scrape_task(user_id):
                     if not Bill.objects.filter(user=user, month=month, year=year, is_predicted=False).exists():
                         bill = Bill.objects.create(user=user, month=month, year=year, units=unit, is_predicted=False)
                         bill.save()               
-                return {'status': 'success', 'message': 'Scraping successful'}
-        return {'status': 'failure', 'message': 'Scraping failed'}
+                return {'status': 200, 'message': 'Scraping successful'}
+        return {'status': 500, 'message': 'Scraping failed'}
     except Exception as e:
-        return {'status': 'failure', 'message': str(e)}
+        return {'status': 500, 'message': str(e)}
