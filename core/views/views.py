@@ -145,26 +145,21 @@ def input_view(request):
 
         # Create room
         room = Room.objects.create(user=user, tag=room_tag, alias=alias)
-
-        total_units = 0
-
         # Process appliances data
         for appliance_data in appliances_data:
             # Extract appliance details
             category_data = appliance_data.get('category')
             sub_category_data = appliance_data.get('sub_category')
             alias = appliance_data.get('alias')
-            usage = appliance_data.get('usage')
-            units = usage * SubCategory.objects.get(name=sub_category_data, category__name=category_data).wattage / 1000
-            total_units += int(units)
+            daily_usage = appliance_data.get('usage')
 
             category, _ = Category.objects.get_or_create(name=category_data)
             sub_category, _ = SubCategory.objects.get_or_create(name=sub_category_data, category=category)
-            appliance = Appliance.objects.create(room=room, category=sub_category.category, sub_category=sub_category, alias=alias)
+            appliance = Appliance.objects.create(room=room, category=sub_category.category, sub_category=sub_category, alias=alias, daily_usage=daily_usage)
 
             # Create usage record
-            Usage.objects.create(appliance=appliance, units=units)
+            Usage.objects.create(appliance=appliance)
         
-        Usage.objects.create(room=room, units=total_units)
+        Usage.objects.create(room=room)
 
     return Response({'message': 'Input data saved successfully'}, status=201)

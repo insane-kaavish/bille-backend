@@ -8,7 +8,9 @@ def get_or_create_category_sub_category(category_name, sub_category_name=None):
         sub_category, _ = SubCategory.objects.get_or_create(name=sub_category_name, category=category)
     return category, sub_category
 
-def get_latest_usage(appliance):
+def get_latest_usage(appliance=None, room=None):
+    if room:
+        return Usage.objects.filter(room=room).order_by('-predict_date').first()
     return Usage.objects.filter(appliance=appliance).order_by('-predict_date').first()
 
 def calculate_total_units(appliances):
@@ -18,9 +20,11 @@ def update_appliance_data(appliance, data):
     appliance.alias = data.get('alias', appliance.alias)
     category_name = data.get('category', appliance.category.name)
     sub_category_name = data.get('sub_category')
+    usage = data.get('usage')
     category, sub_category = get_or_create_category_sub_category(category_name, sub_category_name)
     appliance.category = category
     appliance.sub_category = sub_category
+    appliance.daily_usage = usage
     appliance.save()
     return appliance
 

@@ -15,16 +15,11 @@ def rooms_view(request):
     rooms = Room.objects.filter(user=user)
     room_data = []
     for room in rooms:
-        appliances = Appliance.objects.filter(room=room)
-        total_units = 0
-        for appliance in appliances:
-            usage = Usage.objects.filter(appliance_id=appliance).order_by('-predict_date').first()
-            total_units += usage.units if usage is not None else 0 
         room_data.append({
             'id': room.id,
             'tag': room.tag.tag,
             'alias': room.alias,
-            'units': total_units,
+            'units': get_latest_usage(room=room).units if get_latest_usage(room=room) else 0,
         })
     return Response(room_data, status=200)
 
@@ -43,14 +38,15 @@ def room_view(request):
             'alias': appliance.alias,
             'category': appliance.category.name,
             'sub_category': appliance.sub_category.name if appliance.sub_category else None,
-            'units': get_latest_usage(appliance).units if get_latest_usage(appliance) else 0
+            'daily_usage': appliance.daily_usage,
+            'units': get_latest_usage(appliance=appliance).units if get_latest_usage(appliance=appliance) else 0
         } for appliance in appliances]
         return Response({
             'id': room.id,
             'tag': room.tag.tag,
             'alias': room.alias,
             'appliances': appliances_data,
-            'units': calculate_total_units(appliances)
+            'units': get_latest_usage(room=room).units if get_latest_usage(room=room) else 0
         }, status=200)
 
     except Room.DoesNotExist:
@@ -67,7 +63,6 @@ def update_room_view(request):
         room.alias = data.get('alias', room.alias)
         room.tag = RoomTag.objects.get(tag=data.get('tag', room.tag.tag))
         room.save()
-        total_units = 0
         for appliance_data in data.get('appliances', []):
             appliance_id = appliance_data.get('id')
             if appliance_id:
@@ -77,10 +72,9 @@ def update_room_view(request):
                 # Create new appliance
                 category, sub_category = get_or_create_category_sub_category(appliance_data['category'], appliance_data.get('sub_category'))
                 appliance = Appliance.objects.create(room=room, alias=appliance_data['alias'], category=category, sub_category=sub_category)
-            units = appliance_data.get('usage', 0)
-            calculate_and_save_usage(appliance, units)
-            total_units += units
-        calculate_and_save_usage(room, total_units, is_room=True)
+            Usage.objects.create(appliance=appliance)  
+              
+        Usage.objects.create(room=room)
         return Response({'message': 'Room and appliances updated successfully'}, status=200)
     except Room.DoesNotExist:
         return Response({'error': 'Room not found'}, status=404)

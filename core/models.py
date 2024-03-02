@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from .managers import CustomUserManager
 from .utils.months import MONTH_CHOICES
+import math
 
 # Create your models here.
 class MonthlyAdjustment(models.Model):
@@ -84,15 +85,10 @@ class Appliance(models.Model):
     alias = models.CharField(max_length=50)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, null=True, blank=True)
-    wattage = models.IntegerField(blank=True, null=True)
+    daily_usage = models.FloatField(default=0.0)
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
     
-    # Automatically update wattage when sub_category is updated
-    def save(self, *args, **kwargs):
-        if self.sub_category:
-            self.wattage = self.sub_category.wattage
-        super().save(*args, **kwargs)
 
 class Usage(models.Model):
     TYPE_CHOICES = [
@@ -106,6 +102,19 @@ class Usage(models.Model):
     units = models.IntegerField()
     predict_date = models.DateTimeField(default=now, editable=False)
     type = models.CharField(null = True, max_length=1, choices=TYPE_CHOICES)
+    
+    # On save update units such that appliance.usage * appliance.sub_category.wattage = units
+    def save(self, *args, **kwargs):
+        if self.appliance:
+            self.units = math.ceil(self.appliance.daily_usage * self.appliance.sub_category.wattage * 30 / 1000)
+        elif self.room:
+            # Calculate total units of all appliances in the room
+            appliances = Appliance.objects.filter(room=self.room)
+            total_units = 0
+            for appliance in appliances:
+                total_units += Usage.objects.filter(appliance=appliance).order_by('-predict_date').first().units
+            self.units = total_units
+        super().save(*args, **kwargs)
 
 class Message(models.Model):
     id = models.AutoField(primary_key=True)
