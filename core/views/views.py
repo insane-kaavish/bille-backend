@@ -128,7 +128,7 @@ def input_view(request):
     user = request.user
 
     # Extract data from request
-    num_people = data.get('num_people')
+    num_people = data.get('num_people', 0)
     rooms_data = data.get('rooms', [])
 
     # Update user's num_people value
@@ -138,9 +138,9 @@ def input_view(request):
     # Process rooms data
     for room_data in rooms_data:
         # Extract room details
-        tag = room_data.get('tag')
+        tag = room_data.get('tag', '')
         room_tag = RoomTag.objects.get_or_create(tag=tag)[0]
-        alias = room_data.get('alias')
+        alias = room_data.get('alias', '')
         appliances_data = room_data.get('appliances', [])
 
         # Create room
@@ -150,8 +150,8 @@ def input_view(request):
             # Extract appliance details
             category_data = appliance_data.get('category')
             sub_category_data = appliance_data.get('sub_category')
-            alias = appliance_data.get('alias')
-            daily_usage = appliance_data.get('usage')
+            alias = appliance_data.get('alias', '')
+            daily_usage = appliance_data.get('usage', 0)
 
             category, _ = Category.objects.get_or_create(name=category_data)
             sub_category, _ = SubCategory.objects.get_or_create(name=sub_category_data, category=category)
