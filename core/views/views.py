@@ -151,7 +151,7 @@ def input_view(request):
             category_data = appliance_data.get('category')
             sub_category_data = appliance_data.get('sub_category')
             alias = appliance_data.get('alias', '')
-            daily_usage = appliance_data.get('usage', 0)
+            daily_usage = int(appliance_data.get('usage', 0))
 
             category, _ = Category.objects.get_or_create(name=category_data)
             sub_category, _ = SubCategory.objects.get_or_create(name=sub_category_data, category=category)
