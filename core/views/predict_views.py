@@ -8,6 +8,7 @@ import requests
 
 from ..models import Bill, MonthlyAdjustment
 from ..models import MONTH_CHOICES
+from ..utils.predict import predict
 
 # View to get the amount of units predicted from the Bill model
 @api_view(['POST'])
@@ -32,7 +33,9 @@ def predict_view(request):
             if not bills:
                 units = 0
             else:
-                units = [bill.units for bill in bills]
+                prev_units = [bill.units for bill in bills]
+                print(prev_units)
+                units = predict(prev_units)
                 # Prepare the data to send in the request body
                 data =  {
                     "input_data": {
@@ -59,19 +62,19 @@ def predict_view(request):
                         "data": []
                         }
                     }
-                data['input_data']['data'].append(units)
+                data['input_data']['data'].append(prev_units)
                 headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ token)}
                 # Make the POST request to the Azure ML model
-                response = requests.post(url, json=data, headers=headers)
-                print(response.json())
-                # Check if the request was successful
-                if response.status_code == 200:
-                    # Get the predicted units from the response
-                    units = response.json()[0]
-                else:
-                    # Handle the error case
-                    # Set a default value for units
-                    units = 0
+                # response = requests.post(url, json=data, headers=headers)
+                # print(response.json())
+                # # Check if the request was successful
+                # if response.status_code == 200:
+                #     # Get the predicted units from the response
+                #     units = response.json()[0]
+                # else:
+                #     # Handle the error case
+                #     # Set a default value for units
+                #     units = 0
                 bill = Bill.objects.create(user=user, month=month, year=year, units=units, is_predicted=True)
                 bill.save()
         if units <= 100:
