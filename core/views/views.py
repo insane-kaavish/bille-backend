@@ -163,3 +163,16 @@ def input_view(request):
         Usage.objects.create(room=room)
 
     return Response({'message': 'Input data saved successfully'}, status=201)
+
+from ..utils.repopulate import add_category_subcategory, add_room_tags, add_monthly_adjustments
+# View to repopulate the database with categories, subcategories, room tags and monthly adjustments
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def repopulate_view(request):
+    try:
+        add_category_subcategory()
+        add_room_tags()
+        add_monthly_adjustments()
+        return Response({'message': 'Database repopulated successfully'}, status=200)
+    except IntegrityError:
+        return Response({'error': 'Database repopulation failed'}, status=500)
