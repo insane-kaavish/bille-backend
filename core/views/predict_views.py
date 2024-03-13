@@ -25,10 +25,10 @@ def predict_view(request):
         if bill:
             units = bill[0].units
         else:
-            url = os.environ.get('AZURE_INFERENCE_URL')
-            token = os.environ.get('AZURE_BEARER_TOKEN')
-            # get the units of the previous 17 months
-            bills = Bill.objects.filter(user=user, is_predicted=False).order_by('-year', '-month')[:17]
+            # get the actual bills for the months before the current month and year
+            bills = Bill.objects.filter(user=user, month__lt=month, year__lte=year, is_predicted=False).order_by('year', 'month')
+            # get the actual bills for the months after the current month but with year less than the current year
+            bills |= Bill.objects.filter(user=user, year__lt=year, is_predicted=False).order_by('year', 'month')
             # if bills dont exist, return 0
             if not bills:
                 units = 0
@@ -36,45 +36,6 @@ def predict_view(request):
                 prev_units = [bill.units for bill in bills]
                 print(prev_units)
                 units = predict(prev_units)
-                # Prepare the data to send in the request body
-                data =  {
-                    "input_data": {
-                        "columns": [
-                        "Aug-22",
-                        "Sep-22",
-                        "Oct-22",
-                        "Nov-22",
-                        "Dec-22",
-                        "Jan-23",
-                        "Feb-23",
-                        "Mar-23",
-                        "Apr-23",
-                        "May-23",
-                        "Jun-23",
-                        "Jul-23",
-                        "Aug-23",
-                        "Sep-23",
-                        "Oct-23",
-                        "Nov-23",
-                        "Dec-23"
-                        ],
-                        "index": [0],
-                        "data": []
-                        }
-                    }
-                data['input_data']['data'].append(prev_units)
-                headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ token)}
-                # Make the POST request to the Azure ML model
-                # response = requests.post(url, json=data, headers=headers)
-                # print(response.json())
-                # # Check if the request was successful
-                # if response.status_code == 200:
-                #     # Get the predicted units from the response
-                #     units = response.json()[0]
-                # else:
-                #     # Handle the error case
-                #     # Set a default value for units
-                #     units = 0
                 bill = Bill.objects.create(user=user, month=month, year=year, units=units, is_predicted=True)
                 bill.save()
         if units <= 100:

@@ -130,6 +130,9 @@ venv.bak/
 mlenv/
 venv-wsl/
 
+# Installation file
+*.deb
+
 # Spyder project settings
 .spyderproject
 .spyproject
