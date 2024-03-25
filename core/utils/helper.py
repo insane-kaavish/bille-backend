@@ -20,11 +20,11 @@ def update_appliance_data(appliance, data):
     appliance.alias = data.get('alias', appliance.alias)
     category_name = data.get('category', appliance.category.name)
     sub_category_name = data.get('sub_category')
-    usage = data.get('daily_usage')
+    daily_usage = int(data.get('daily_usage'))
     category, sub_category = get_or_create_category_sub_category(category_name, sub_category_name)
     appliance.category = category
     appliance.sub_category = sub_category
-    appliance.daily_usage = usage
+    appliance.daily_usage = daily_usage
     appliance.save()
     return appliance
 
