@@ -71,7 +71,9 @@ def delete_appliance_view(request):
     appliance_id = request.query_params.get('appliance_id')
     try:
         appliance = Appliance.objects.get(id=appliance_id)
+        room = appliance.room
         appliance.delete()
+        Usage.objects.create(room=room)
         return Response({'message': 'Appliance deleted successfully'}, status=200)
     except Appliance.DoesNotExist:
         return Response({'error': 'Appliance not found'}, status=404)
