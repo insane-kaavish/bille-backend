@@ -72,7 +72,7 @@ def update_room_view(request):
             else:
                 # Create new appliance
                 category, sub_category = get_or_create_category_sub_category(appliance_data['category'], appliance_data.get('sub_category'))
-                appliance = Appliance.objects.create(room=room, alias=appliance_data['alias'], category=category, sub_category=sub_category)
+                appliance = Appliance.objects.create(room=room, alias=appliance_data['alias'], category=category, sub_category=sub_category, daily_usage=appliance_data['daily_usage'])
             Usage.objects.create(appliance=appliance)  
               
         Usage.objects.create(room=room)
