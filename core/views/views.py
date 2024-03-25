@@ -60,8 +60,10 @@ def signup_view(request):
     try:
         email = data['email']
         password = data['password']
-        first_name = data['first_name'] if 'first_name' in data else ''
-        last_name = data['last_name'] if 'last_name' in data else ''
+        name = data['name']
+        # split the name into first name and last name after the last space
+        first_name = name.rsplit(' ', 1)[0] if ' ' in name else name
+        last_name = name.rsplit(' ', 1)[1] if ' ' in name else ''
         ke_num = data['ke_num'] if 'ke_num' in data else ''
         user = CustomUser.objects.create_user(email=email, password=password, first_name=first_name, last_name=last_name, ke_num=ke_num)
     except IntegrityError:
@@ -88,6 +90,20 @@ def message_view(request):
         return Response({'contact message saved successfully'}, status = 201)
     return Response({'contact message saved failed'}, status = 400)
 
+# View to get the user details
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def user_view(request):
+    user = request.user
+    return Response({
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'num_people': user.num_people,
+        'ke_num': user.ke_num
+    }, status=200)
+    
 # View to update the user details
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
@@ -95,8 +111,10 @@ def message_view(request):
 def update_user_view(request):
     user = request.user
     data = request.data
-    user.first_name = data['first_name'] if 'first_name' in data else user.first_name
-    user.last_name = data['last_name'] if 'last_name' in data else user.last_name
+    name = data.get('name')
+    if name:
+        user.first_name = name.rsplit(' ', 1)[0] if ' ' in name else name
+        user.last_name = name.rsplit(' ', 1)[1] if ' ' in name else ''
     user.email = data['email'] if 'email' in data else user.email
     user.num_people = data['num_people'] if 'num_people' in data else user.num_people
     user.ke_num = data['ke_num'] if 'ke_num' in data else user.ke_num

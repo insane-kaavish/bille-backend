@@ -11,6 +11,7 @@ urlpatterns = [
     path('login/', login_view),
     path('signup/', signup_view),
     path('update_password/', update_password_view),
+    path('user/', user_view),
     path('update_user/', update_user_view),
     path('repopulate_database/', repopulate_view),
     
