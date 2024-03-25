@@ -21,8 +21,8 @@ def appliances_view(request):
             'id': appliance.id,
             'room_id': appliance.room.id,
             'alias': appliance.alias,
-            'category': appliance.category,
-            'sub_category': appliance.sub_category,
+            'category': appliance.category.name,
+            'sub_category': appliance.sub_category.name,
             'usage': usage.units if usage is not None else 0
         })
     return Response(appliance_data, status=200)
