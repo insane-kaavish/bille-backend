@@ -57,9 +57,10 @@ def room_view(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_room_view(request):
-    data = request.data
     try:
-        room = Room.objects.get(id=data['room_id'], user=request.user)  # Ensure the room belongs to the user
+        room_id = request.query_params.get('room_id')
+        room = Room.objects.get(id=room_id, user=request.user)  # Ensure the room belongs to the user
+        data = request.data
         room.alias = data.get('alias', room.alias)
         room.tag = RoomTag.objects.get(tag=data.get('tag', room.tag.tag))
         room.save()

@@ -51,9 +51,10 @@ def appliance_view(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_appliance_view(request):
+    appliance_id = request.query_params.get('appliance_id')
     data = request.data
     try:
-        appliance = Appliance.objects.get(id=data['appliance_id'], room__user=request.user)  # Ensure the appliance belongs to the user
+        appliance = Appliance.objects.get(id=appliance_id, room__user=request.user)  # Ensure the appliance belongs to the user
         update_appliance_data(appliance, data)
         return Response({'message': 'Appliance updated successfully'}, status=200)
     except Appliance.DoesNotExist:
