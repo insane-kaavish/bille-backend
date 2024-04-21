@@ -1,60 +1,95 @@
-def mean_absolute_error(true_values, forecast):
-    # Calculate Mean Absolute Error
-    n = len(true_values)
-    return sum(abs(true_values[i] - forecast[i]) for i in range(n)) / n
+import json
+from typing import List
 
-# Function to perform Holt-Winters Exponential Smoothing
-def holt_winters_exponential_smoothing(data, alpha, beta, gamma, seasonal_periods):
-    n = len(data)
-    level = [0] * n
-    trend = [0] * n
-    seasonal = [0] * n
-    forecast = [0] * n
+def get_param_grid():    
+    # Load param_grid from the JSON file
+    with open('Prediction\param_grid.json', 'r') as f:
+        loaded_param_grid = json.load(f)
 
-    # Initialize the level, trend, and seasonal components
-    level[0] = data[0]
-    trend[0] = data[1] - data[0]
-    seasonal[:seasonal_periods] = [data[i] - level[0] for i in range(seasonal_periods)]
+    return loaded_param_grid
 
-    # Perform Holt-Winters Exponential Smoothing
-    for t in range(1, n):
-        level[t] = alpha * (data[t] - seasonal[t % seasonal_periods]) + (1 - alpha) * (level[t - 1] + trend[t - 1])
-        trend[t] = beta * (level[t] - level[t - 1]) + (1 - beta) * trend[t - 1]
-        seasonal[t % seasonal_periods] = gamma * (data[t] - level[t]) + (1 - gamma) * seasonal[t % seasonal_periods]
-        forecast[t] = level[t] + trend[t] + seasonal[t % seasonal_periods]
+def initial_trend(series: List, uppercase_m: int) -> float:
+    return sum([
+        float(series[i+uppercase_m] - series[i]) / uppercase_m 
+        for i in range(uppercase_m)
+    ]) / uppercase_m
 
-    return forecast
+def initial_seasonality(series: List, uppercase_m: int) -> List:
+    initial_season = []
+    n_seasons = int(len(series)/uppercase_m)
 
-def get_alpha(test_units,test_data):
-    metrics = {}
-    for alpha_value in range(1, 10):
-        alpha = alpha_value / 10.0  # Convert to a decimal between 0 and 1
+    season_averages = [sum(
+        series[uppercase_m * i:uppercase_m * i + uppercase_m]
+    ) / uppercase_m for i in range(n_seasons)]
 
-        # Perform Holt-Winters Exponential Smoothing
-        forecast = holt_winters_exponential_smoothing(test_units, alpha, beta=0.7, gamma=0.7, seasonal_periods=12)
-        # Calculate MAE
-        mae = mean_absolute_error(test_units[-len(forecast):], forecast)
+    initial_season.extend([
+        sum([series[uppercase_m*j+i]-season_averages[j] 
+             for j in range(n_seasons)]) / n_seasons 
+        for i in range(uppercase_m)
+    ])
+    
+    return initial_season
 
-        # Store the alpha value and the corresponding MAE
-        metrics[alpha] = mae
+def winters_es(series: List,
+               uppercase_m: int,
+               alpha: float=0.9,
+               beta: float=0.9,
+               gamma: float=0.9,
+               future_steps: int=1) -> List:
+    
+    i_l = [series[0]]
+    i_t = [initial_trend(series, uppercase_m)]
+    i_s = initial_seasonality(series, uppercase_m)
 
-    # get best alpha from min mae
-    best_alpha = min(metrics, key=metrics.get)
+    forecasts = []
+    for t in range(len(series) + future_steps):
 
-    return best_alpha
+        if t >= len(series):
+            k = t - len(series) + 1
+            forecasts.append(
+                (i_l[-1] + k * i_t[-1]) + i_s[t % uppercase_m]
+            )
+
+        else:
+            l_t = alpha * (series[t] - i_s[t % uppercase_m]) + (1 - alpha) * (i_l[-1] + i_t[-1])
+
+            i_t[-1] = beta * (l_t - i_l[-1]) + (1 - beta) * i_t[-1]
+            i_l[-1] = l_t
+
+            i_s[t % uppercase_m] = gamma * (series[t] - l_t) + (1 - gamma) * i_s[t % uppercase_m]
+
+            forecasts.append(
+                (i_l[-1] + i_t[-1]) + i_s[t % uppercase_m]
+            )
+
+    return forecasts
+
+def prep_data(units):
+    train_data = units[:-1] # all values except the last one
+    test_data = units[-1] # last value in the list
+    return train_data, test_data
+ 
+def optimal_params(units):
+    param_grid = get_param_grid()
+    optimal_params = None
+    min_error = float('inf')
+
+    train_data, test_data = prep_data(units)
+    for params in param_grid:
+        alpha, beta, gamma = params
+        forecast = winters_es(train_data, 8, alpha, beta, gamma, 1)
+        error = abs(test_data - forecast[-1])
+        if error < min_error:
+            min_error = error
+            optimal_params = params
+
+    return optimal_params
 
 def predict(units):
-    # get test data from last index in units
-    test_data = units[-1]
-    test_units = units[:-1]
+    # get optimal parameters
+    opt_params = optimal_params(units)
 
-    # get best alpha
-    optimal_alpha = get_alpha(test_units,test_data)
-
-    # Perform Holt-Winters Exponential Smoothing For Prediction
-    forecast = holt_winters_exponential_smoothing(units, optimal_alpha, beta=0.7, gamma=0.7, seasonal_periods=12)
-
-    # predicted forecast
-    forecast = forecast[-1]
-
-    return int(forecast)
+    # run on optimal parameters
+    forecast = winters_es(units, 8, opt_params[0], opt_params[1], opt_params[2], 1)
+    
+    return int(forecast[-1])
