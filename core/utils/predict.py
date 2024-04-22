@@ -3,7 +3,7 @@ from typing import List
 
 def get_param_grid():    
     # Load param_grid from the JSON file
-    with open('Prediction\param_grid.json', 'r') as f:
+    with open('core/utils/param_grid.json', 'r') as f:
         loaded_param_grid = json.load(f)
 
     return loaded_param_grid
