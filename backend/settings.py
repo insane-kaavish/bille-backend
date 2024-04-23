@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'django_celery_results',
+    'django_celery_beat',
 ]
 
 AUTH_USER_MODEL = 'core.CustomUser' # changes the django default user model to our custom user model
@@ -123,13 +124,7 @@ CELERY_ENABLE_UTC = True
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_TASK_SOFT_TIME_LIMIT = 30 * 60
-CELERY_BEAT_SCHEDULE = {
-    'add-every-30-seconds': {
-        'task': 'core.tasks.add',
-        'schedule': 30.0,
-        'args': (16, 16)
-    },
-}
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

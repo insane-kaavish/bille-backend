@@ -44,3 +44,11 @@ def scrape_task(user_id):
         return {'status': 500, 'message': 'Scraping failed'}
     except Exception as e:
         return {'status': 500, 'message': str(e)}
+
+@shared_task
+def scrape_all_task():
+    users = CustomUser.objects.all()
+    for user in users:
+        if user.ke_num:
+            scrape_task.delay(user.id)
+    return {'status': 200, 'message': 'Scraping initiated for all users'}
