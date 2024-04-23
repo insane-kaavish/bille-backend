@@ -2,8 +2,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from core.models import Room, Appliance, Usage, RoomTag, Category, SubCategory
-import math
+from core.models import Room, Appliance, Usage, RoomTag, Category, SubCategory, Bill
 from ..utils.helper import *
 
 # View to get all the rooms
@@ -14,13 +13,20 @@ def rooms_view(request):
     user = request.user
     rooms = Room.objects.filter(user=user)
     room_data = []
+    total_units = 0
     for room in rooms:
+        room_units = get_latest_usage(room=room).units if get_latest_usage(room=room) else 0
+        total_units += room_units
         room_data.append({
             'id': room.id,
             'tag': room.tag.tag,
             'alias': room.alias,
             'units': get_latest_usage(room=room).units if get_latest_usage(room=room) else 0,
         })
+    current_units = Bill.objects.filter(user=user, is_predicted=True).latest('year', 'month').units
+    # Normalize the room units according to the total units
+    for room in room_data:
+        room['units'] = round(current_units * room['units'] / total_units)
     return Response(room_data, status=200)
 
 # View to get a particular room
