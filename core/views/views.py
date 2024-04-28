@@ -14,7 +14,7 @@ from rest_framework import generics
 
 from ..models import *
 from ..serializers import *
-from ..utils.repopulate import add_category_subcategory, add_room_tags, add_monthly_adjustments
+from ..utils.repopulate import *
 
 # Create your views here.
 class CustomObtainAuthToken(ObtainAuthToken):
@@ -191,6 +191,8 @@ def repopulate_view(request):
         add_category_subcategory()
         add_room_tags()
         add_monthly_adjustments()
+        add_tips()
+        add_tips_categories()
         return Response({'message': 'Database repopulated successfully'}, status=200)
     except IntegrityError:
         return Response({'error': 'Database repopulation failed'}, status=500)
@@ -212,3 +214,28 @@ def tips_view(request):
             'content': tip.tip.content
         })
     return Response(tips, status=200)
+
+# Get the appliance with the highest usage in the house
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def highest_usage_view(request):
+    user = request.user
+    rooms = Room.objects.filter(user=user)
+    highest_usage = 0
+    highest_usage_appliance = None
+    for room in rooms:
+        appliances = Appliance.objects.filter(room=room)
+        for appliance in appliances:
+            usage = Usage.objects.filter(appliance=appliance).order_by('-usage').first()
+            if usage is not None and usage.usage > highest_usage:
+                highest_usage = usage.usage
+                highest_usage_appliance = appliance
+    if highest_usage_appliance is not None:
+        return Response({
+            'alias': highest_usage_appliance.alias,
+            'category': highest_usage_appliance.category.name,
+            'sub_category': highest_usage_appliance.sub_category.name,
+            'usage': highest_usage
+        }, status=200)
+    return Response({'message': 'No appliances found'}, status=404)
