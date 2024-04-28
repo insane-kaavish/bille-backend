@@ -124,3 +124,22 @@ class Message(models.Model):
     def __str__(self):
         return self.message
     
+class Tip(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    created_at = models.DateTimeField(default=now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+class TipCategory(models.Model):
+    id = models.AutoField(primary_key=True)
+    tip = models.ForeignKey(Tip, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.tip.title} - {self.category.name} - {self.sub_category.name}"
+    
