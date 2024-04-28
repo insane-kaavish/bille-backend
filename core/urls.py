@@ -33,6 +33,8 @@ urlpatterns = [
     path('delete_appliance/', delete_appliance_view),
     path('categories/', categories_view),
     
+    path('tips/', tips_view),
+    
     path('update_adjustment/', update_monthly_adjustment_view),
     path('reset_adjustments/', reset_monthly_adjustment_view),
     path('scrape/', scrape_view),
