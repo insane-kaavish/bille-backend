@@ -14,6 +14,7 @@ from rest_framework import generics
 
 from ..models import *
 from ..serializers import *
+from ..utils.repopulate import add_category_subcategory, add_room_tags, add_monthly_adjustments
 
 # Create your views here.
 class CustomObtainAuthToken(ObtainAuthToken):
@@ -182,7 +183,6 @@ def input_view(request):
 
     return Response({'message': 'Input data saved successfully'}, status=201)
 
-from ..utils.repopulate import add_category_subcategory, add_room_tags, add_monthly_adjustments
 # View to repopulate the database with categories, subcategories, room tags and monthly adjustments
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
@@ -194,3 +194,21 @@ def repopulate_view(request):
         return Response({'message': 'Database repopulated successfully'}, status=200)
     except IntegrityError:
         return Response({'error': 'Database repopulation failed'}, status=500)
+    
+# View to get tips for a specific appliance
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def tips_view(request):
+    appliance_id = request.query_params.get('appliance_id')
+    appliance = Appliance.objects.get(id=appliance_id)
+    category = appliance.category
+    sub_category = appliance.sub_category
+    tipcategories = TipCategory.objects.filter(category=category, sub_category=sub_category)
+    tips = []
+    for tip in tipcategories:
+        tips.append({
+            'title': tip.tip.title,
+            'content': tip.tip.content
+        })
+    return Response(tips, status=200)
