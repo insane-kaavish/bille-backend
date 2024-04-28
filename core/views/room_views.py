@@ -92,6 +92,27 @@ def update_room_view(request):
     except KeyError:
         return Response({'error': 'Room ID is required'}, status=400)
 
+# add a new room
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def add_room_view(request):
+    user = request.user
+    data = request.data
+    tag = data.get('tag', '')
+    room_tag = RoomTag.objects.get_or_create(tag=tag)[0]
+    alias = data.get('alias', '')
+    appliances = data.get('appliances')
+    room = Room.objects.create(user=user, tag=room_tag, alias=alias)
+    for appliance_data in appliances:
+        category, sub_category = get_or_create_category_sub_category(appliance_data['category'], appliance_data.get('sub_category'))
+        alias = appliance_data.get('alias', '')
+        daily_usage = int(appliance_data.get('daily_usage', 0))
+        appliance = Appliance.objects.create(room=room, alias=alias, category=category, sub_category=sub_category, daily_usage=daily_usage)
+        Usage.objects.create(appliance=appliance)
+    Usage.objects.create(room=room)
+    return Response({'message': 'Room added successfully'}, status=201)
+
 # delete the room
 @api_view(['DELETE'])
 @authentication_classes([TokenAuthentication])

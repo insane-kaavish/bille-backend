@@ -25,6 +25,7 @@ urlpatterns = [
     path('room/', room_view),
     path('update_room/', update_room_view),
     path('delete_room/', delete_room_view),
+    path('add_room/', add_room_view),
     path('room_tags/', room_tags_view),
 
     path('appliances/', appliances_view),
