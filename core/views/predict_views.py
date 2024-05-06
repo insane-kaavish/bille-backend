@@ -8,73 +8,34 @@ import requests
 
 from ..models import Bill, MonthlyAdjustment
 from ..models import MONTH_CHOICES
-from ..utils.predict import predict
+from ..utils.predict import *
 
 # View to get the amount of units predicted from the Bill model
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def predict_view(request):
-    user = request.user # Get the ID of the current user
-    data = request.data
+    user = request.user
     try:
-        month = data['month']
-        month = next((m[0] for m in MONTH_CHOICES if m[1] == month), None)
-        year = data['year']
-        bill = Bill.objects.filter(user=user, month=month, year=year, is_predicted=True)
-        if bill:
-            units = bill[0].units
-        else:
-            # get the actual bills for the months before the current month and year
-            bills = Bill.objects.filter(user=user, month__lt=month, year__lte=year, is_predicted=False).order_by('year', 'month')
-            # get the actual bills for the months after the current month but with year less than the current year
-            bills |= Bill.objects.filter(user=user, year__lt=year, is_predicted=False).order_by('year', 'month')
-            # if bills dont exist, return 0
-            if not bills:
-                units = 0
-            else:
-                prev_units = [bill.units for bill in bills]
-                print(prev_units)
-                units = predict(prev_units)
-                bill = Bill.objects.create(user=user, month=month, year=year, units=units, is_predicted=True)
-                bill.save()
-        if units <= 100:
-            per_unit_cost = 10.00
-        elif units <= 200:
-            per_unit_cost = 15.00
-        elif units <= 300:
-            per_unit_cost = 20.00
-        elif units <= 400:
-            per_unit_cost = 25.00
-        else:
-            per_unit_cost = 30.00
-        per_unit_cost += MonthlyAdjustment.objects.get(month=month).adj_factor
-        # find the previous 12 months and apply the adjustment factor
-        prev_bills = Bill.objects.filter(user=user, is_predicted=False).order_by('-year', '-month')[:12]
-        prev_adj = 0
-        for prev_bill in prev_bills:
-            prev_adj += prev_bill.units * MonthlyAdjustment.objects.get(month=prev_bill.month).adj_factor
-        # Additional surcharge
-        add_surcharge = units * 0.43
-        total_cost = units * per_unit_cost + prev_adj + add_surcharge
-        
-        # 1.5% Electricity duty, 17% sales tax and 35rs TV fees
-        total_cost *= (0.015 + 0.17) + 35
-        if total_cost >= 25000:
-            # Income tax for residential consumers
-            total_cost *= 1.07
+        bill = Bill.objects.filter(user=user, is_predicted=True).order_by('-year', '-month').first()
+        units = bill.units
+        month = bill.month
+        per_unit_cost = calculate_per_unit_cost(units, month)
+        prev_adj = calculate_previous_adjustment(user)
+        add_surcharge = calculate_additional_surcharge(units)
+        total_cost = calculate_total_cost(units, per_unit_cost, prev_adj, add_surcharge)
         response = {
             'units': units,
             'per_unit_cost': per_unit_cost,
             'prev_adj': prev_adj,
-            'total_cost': units * per_unit_cost + prev_adj
+            'total_cost': total_cost
         }
         return Response(response, status=200)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found for the current user'}, status=404)
     except KeyError:
         return Response({'error': 'Month and year are required'}, status=400)
-    
+
 # View to get month-wise units for bar graph
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
