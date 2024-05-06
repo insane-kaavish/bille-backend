@@ -127,7 +127,7 @@ def calculate_additional_surcharge(units):
 
 def calculate_total_cost(units, per_unit_cost, prev_adj, add_surcharge):
     total_cost = units * per_unit_cost + prev_adj + add_surcharge
-    total_cost *= (0.015 + 0.17) + 35
+    total_cost += total_cost*(0.015 + 0.17) + 35
     if total_cost >= 25000:
         total_cost *= 1.07
-    return total_cost
+    return int(total_cost)
