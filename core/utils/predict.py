@@ -1,5 +1,6 @@
 import json
 from typing import List
+from ..models import *
 
 def get_param_grid():    
     # Load param_grid from the JSON file
@@ -93,3 +94,40 @@ def predict(units):
     forecast = winters_es(units, 8, opt_params[0], opt_params[1], opt_params[2], 1)
     
     return int(forecast[-1])
+
+def get_predicted_units(user, month, year):
+    bill = Bill.objects.filter(user=user, month__lte=month, year=year, is_predicted=False).order_by('year', 'month')
+    bill |= Bill.objects.filter(user=user, year__lt=year, is_predicted=False).order_by('year', 'month')
+    if not bill:
+        return 0
+    prev_units = [b.units for b in bill]
+    return predict(prev_units)
+
+def calculate_per_unit_cost(units, month):
+    if units <= 100:
+        return 10.00
+    elif units <= 200:
+        return 15.00
+    elif units <= 300:
+        return 20.00
+    elif units <= 400:
+        return 25.00
+    else:
+        return 30.00
+
+def calculate_previous_adjustment(user):
+    prev_bills = Bill.objects.filter(user=user, is_predicted=False).order_by('-year', '-month')[:12]
+    prev_adj = 0
+    for prev_bill in prev_bills:
+        prev_adj += prev_bill.units * MonthlyAdjustment.objects.get(month=prev_bill.month).adj_factor
+    return prev_adj
+
+def calculate_additional_surcharge(units):
+    return units * 0.43
+
+def calculate_total_cost(units, per_unit_cost, prev_adj, add_surcharge):
+    total_cost = units * per_unit_cost + prev_adj + add_surcharge
+    total_cost *= (0.015 + 0.17) + 35
+    if total_cost >= 25000:
+        total_cost *= 1.07
+    return total_cost
