@@ -1,23 +1,8 @@
 from celery import shared_task
 from datetime import datetime
-from .models import CustomUser, Bill
+from .models import *
 from .utils.scraper import scrape, read_pdf  # Assuming scrape logic is refactored into a separate file
 from .utils.predict import *
-
-MONTH_CHOICES = [
-    (1, 'Jan'),
-    (2, 'Feb'),
-    (3, 'Mar'),
-    (4, 'Apr'),
-    (5, 'May'),
-    (6, 'Jun'),
-    (7, 'Jul'),
-    (8, 'Aug'),
-    (9, 'Sep'),
-    (10, 'Oct'),
-    (11, 'Nov'),
-    (12, 'Dec')
-]
 
 curr_month = datetime.now().month
 curr_year = datetime.now().year

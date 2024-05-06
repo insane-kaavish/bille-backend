@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.shortcuts import render,redirect
 from django.contrib.auth import authenticate, login
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
@@ -183,20 +183,7 @@ def input_view(request):
 
     return Response({'message': 'Input data saved successfully'}, status=201)
 
-# View to repopulate the database with categories, subcategories, room tags and monthly adjustments
-@api_view(['GET'])
-@permission_classes([IsAdminUser])
-def repopulate_view(request):
-    try:
-        add_category_subcategory()
-        add_room_tags()
-        add_monthly_adjustments()
-        add_tips()
-        add_tips_categories()
-        return Response({'message': 'Database repopulated successfully'}, status=200)
-    except IntegrityError:
-        return Response({'error': 'Database repopulation failed'}, status=500)
-    
+  
 # View to get tips for a specific appliance
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])

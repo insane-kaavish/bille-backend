@@ -6,7 +6,7 @@ from celery.result import AsyncResult
 
 from ..tasks import scrape_task
 
-@api_view(['GET'])
+@api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def scrape_view(request):
