@@ -31,6 +31,8 @@ def predict_view(request):
             'total_cost': total_cost
         }
         return Response(response, status=200)
+    except AttributeError:
+        return Response({'error': 'No predicted units found'}, status=404)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found for the current user'}, status=404)
     except KeyError:
