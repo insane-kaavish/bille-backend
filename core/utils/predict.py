@@ -1,5 +1,6 @@
 import json
 from typing import List
+from datetime import datetime
 from ..models import *
 
 def get_param_grid():    
@@ -93,7 +94,7 @@ def predict(units):
     # run on optimal parameters
     forecast = winters_es(units, 8, opt_params[0], opt_params[1], opt_params[2], 1)
     
-    return int(forecast[-1])
+    return forecast
 
 def get_predicted_units(user, month, year):
     bill = Bill.objects.filter(user=user, month__lte=month, year=year, is_predicted=False).order_by('year', 'month')
@@ -102,6 +103,29 @@ def get_predicted_units(user, month, year):
         return 0
     prev_units = [b.units for b in bill]
     return predict(prev_units)
+
+def store_predicted_units(user, is_scraper=False):
+    month = curr_month = datetime.now().month
+    curr_year = datetime.now().year
+    curr_bill = Bill.objects.filter(user=user, month=curr_month, year=curr_year, is_predicted=False).first()
+    forcast = []
+    # FIXME Current month is being incremented by 1 without checking if it is December
+    if curr_bill:
+        month += 1
+        predicted_bill = Bill.objects.filter(user=user, month=curr_month+1, year=curr_year, is_predicted=True).first()
+        if not predicted_bill or not is_scraper:
+            forcast = get_predicted_units(user, curr_month+1, curr_year)
+            if is_scraper:
+                bill = int(forcast[-1])
+                bill = Bill.objects.create(user=user, month=curr_month+1, year=curr_year, units=bill, is_predicted=True)    
+    else:
+        predicted_bill = Bill.objects.filter(user=user, month=curr_month, year=curr_year, is_predicted=True).first()
+        if not predicted_bill or not is_scraper:
+            forcast = get_predicted_units(user, curr_month, curr_year)
+            if is_scraper:
+                bill = int(forcast[-1])
+                bill = Bill.objects.create(user=user, month=curr_month, year=curr_year, units=bill, is_predicted=True)
+    return forcast, month
 
 def calculate_per_unit_cost(units, month):
     if units <= 100:
