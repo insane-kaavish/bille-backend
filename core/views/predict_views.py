@@ -49,18 +49,44 @@ def months_view(request):
     monthwise_bills = {}
     for bill in bills:
         month_year_key = f"{bill.get_month_display()}-{bill.year}"
-        if month_year_key not in monthwise_bills:
-            monthwise_bills[month_year_key] = []
-        monthwise_bills[month_year_key].append(bill.units)
+        monthwise_bills[month_year_key] = bill.units
     
     sorted_monthwise_keys = sorted(
         monthwise_bills.keys(),
         key=lambda x: (int(x.split('-')[1]), next((m[0] for m in MONTH_CHOICES if m[1] == x.split('-')[0]), None))
     )
     
-    for key in sorted_monthwise_keys:
-        monthwise_bills[key].sort()
-    
     sorted_monthwise_bills = {key: monthwise_bills[key] for key in sorted_monthwise_keys}
     
     return Response({'monthwise_units': sorted_monthwise_bills}, status=200)
+
+# View to send the latest forcast
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def forcast_view(request):
+    user = request.user
+    try:
+        forcast, _ = store_predicted_units(user)
+        print("Forcast: ", forcast)
+        return Response({'units': forcast}, status=200)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+    
+# View to send the latest predicted and previous all non predicted units as a single list with the latest being the prediction
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def bar_graph_view(request):
+    user = request.user
+    try:
+        units = []
+        for bill in Bill.objects.filter(user=user, is_predicted=False).order_by('year', 'month'):
+            units.append(bill.units)
+        forcast, month = store_predicted_units(user)
+        units.append(int(forcast[-1]))
+        # FIXME year is hardcoded to 2024
+        return Response({'units': units, 'month': month, 'year': 2024}, status=200)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+    
