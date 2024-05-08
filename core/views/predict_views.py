@@ -28,15 +28,15 @@ def predict_view(request):
         total_cost = cost + taxes + 35
         if total_cost >= 25000:
             total_cost *= 1.07
-        slab = units // 100
+        slab = (units // 100) * 100
         response = {
             'units': units,
             'per_unit_cost': per_unit_cost,
-            'prev_adj': prev_adj,
-            'total_cost': total_cost,
+            'prev_adj': int(prev_adj),
+            'total_cost': int(total_cost),
             'tv_fees': 35,
-            'taxes': taxes,
-            'add_surcharge': add_surcharge,
+            'taxes': int(taxes),
+            'add_surcharge': int(add_surcharge),
             'slab': slab
         }
         return Response(response, status=200)
