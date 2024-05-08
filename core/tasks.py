@@ -30,7 +30,7 @@ def scrape_task(user_id):
                     if not Bill.objects.filter(user=user, month=month, year=year, is_predicted=False).exists():
                         bill = Bill.objects.create(user=user, month=month, year=year, units=unit, is_predicted=False)
                         bill.save()
-                forcast = store_predicted_units(user, is_scraper=True)   
+                forcast, _ = store_predicted_units(user, is_scraper=True)   
                 print("Forcast: ", forcast)
                 return {'status': 200, 'message': 'Scraping successful'}
         return {'status': 500, 'message': 'Scraping failed'}

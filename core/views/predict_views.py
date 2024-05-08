@@ -22,13 +22,22 @@ def predict_view(request):
         month = bill.month
         per_unit_cost = calculate_per_unit_cost(units, month)
         prev_adj = calculate_previous_adjustment(user)
-        add_surcharge = calculate_additional_surcharge(units)
-        total_cost = calculate_total_cost(units, per_unit_cost, prev_adj, add_surcharge)
+        add_surcharge = units * 0.43
+        cost = units * per_unit_cost + prev_adj + add_surcharge
+        taxes = total_cost*(0.015 + 0.17)
+        total_cost = cost + taxes + 35
+        if total_cost >= 25000:
+            total_cost *= 1.07
+        slab = units // 100
         response = {
             'units': units,
             'per_unit_cost': per_unit_cost,
             'prev_adj': prev_adj,
-            'total_cost': total_cost
+            'total_cost': total_cost,
+            'tv_fees': 35,
+            'taxes': taxes,
+            'add_surcharge': add_surcharge,
+            'slab': slab
         }
         return Response(response, status=200)
     except AttributeError:

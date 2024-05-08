@@ -145,13 +145,3 @@ def calculate_previous_adjustment(user):
     for prev_bill in prev_bills:
         prev_adj += prev_bill.units * MonthlyAdjustment.objects.get(month=prev_bill.month).adj_factor
     return prev_adj
-
-def calculate_additional_surcharge(units):
-    return units * 0.43
-
-def calculate_total_cost(units, per_unit_cost, prev_adj, add_surcharge):
-    total_cost = units * per_unit_cost + prev_adj + add_surcharge
-    total_cost += total_cost*(0.015 + 0.17) + 35
-    if total_cost >= 25000:
-        total_cost *= 1.07
-    return int(total_cost)
