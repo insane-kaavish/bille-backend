@@ -24,7 +24,7 @@ def predict_view(request):
         prev_adj = calculate_previous_adjustment(user)
         add_surcharge = units * 0.43
         cost = units * per_unit_cost + prev_adj + add_surcharge
-        taxes = total_cost*(0.015 + 0.17)
+        taxes = cost*(0.015 + 0.17)
         total_cost = cost + taxes + 35
         if total_cost >= 25000:
             total_cost *= 1.07
