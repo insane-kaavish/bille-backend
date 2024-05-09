@@ -6,27 +6,25 @@ import os
 
 dotenv.load_dotenv()
 
-WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
 WEATHER_API_URL = os.getenv('WEATHER_API_URL')
-# WEATHER_URL = 'http://api.openweathermap.org/data/3.0/onecall/day_summary?lat=24.8608&lon=67.0104&appid=2fce26b3009e0a66de8c0a0223800869&units=metric&date=2024-05-08'
+WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
 
 def get_current_weather_data():
-    url = f'{WEATHER_API_URL}/forecast.json?key={WEATHER_API_KEY}&q=Karachi&days=1&aqi=no&alerts=no'
+    url = f'{WEATHER_API_URL}/current.json?key={WEATHER_API_KEY}&q=Karachi&aqi=no'
     # Make a call to the weather API
     response = requests.get(url)
-    print(response)
-    
+
     # Process the response data
     if response.status_code == 200:
         weather_data = response.json()
         # Do something with the weather data
         temp = weather_data['current']['temp_c']
-        type = weather_data['current']['condition']['text']
-        icon = weather_data['current']['condition']['icon']
-        humidity = weather_data['current']['humidity']
+        condition = weather_data['current']['condition'].get('text', '')
+        icon = weather_data['current']['condition'].get('icon', '')
+        humidity = weather_data['current'].get('humidity', None)
         return {
             'temp': temp,
-            'type': type,
+            'condition': condition,
             'icon': icon,
             'humidity': humidity
         }
@@ -45,12 +43,12 @@ def get_weather_data(date):
         weather_data = response.json()
         # Do something with the weather data
         temp = weather_data['forecast']['forecastday'][0]['day']['avgtemp_c']
-        type = weather_data['forecast']['forecastday'][0]['day']['condition']['text']
+        condition = weather_data['forecast']['forecastday'][0]['day']['condition']['text']
         icon = weather_data['forecast']['forecastday'][0]['day']['condition']['icon']
         humidity = weather_data['forecast']['forecastday'][0]['day']['avghumidity']
         return {
             'temp': temp,
-            'type': type,
+            'condition': condition,
             'icon': icon,
             'humidity': humidity
         }
@@ -72,13 +70,13 @@ def get_weekly_weather():
         for day in weather_data['forecast']['forecastday']:
             date = day['date']
             temp = day['day']['avgtemp_c']
-            type = day['day']['condition']['text']
-            icon = day['day']['condition']['icon']
-            humidity = day['day']['avghumidity']
+            condition = day['day']['condition'].get('text', '')
+            icon = day['day']['condition'].get('icon', '')
+            humidity = day['day'].get('avghumidity', None)
             forecast.append({
                 'date': date,
                 'temp': temp,
-                'type': type,
+                'condition': condition,
                 'icon': icon,
                 'humidity': humidity
             })
@@ -96,7 +94,7 @@ def get_weekly_weather_inference(weather_forecast):
 
     for day in weather_forecast:
         temp = day['temp']
-        type = day['type']
+        condition = day['condition']
         humidity = day['humidity']
 
         # Check for pleasant weather (temperature between 20-30 degrees Celsius)

@@ -20,6 +20,12 @@ def weather_inference_view(request):
     if 'error' in weekly_data:
         return Response(weekly_data, status=500)
     inferences = []
-    inferences.append(get_weekly_weather_inference(weekly_data))
-    inferences.append(compare_weather())
+    weekly_inference = get_weekly_weather_inference(weekly_data)
+    compare_inference = compare_weather()
+    if 'error' in weekly_inference:
+        return Response(weekly_inference, status=500)
+    if 'error' in compare_inference:
+        return Response(compare_inference, status=500)
+    inferences.append(weekly_inference)
+    inferences.append(compare_inference)
     return Response(inferences, status=200)
