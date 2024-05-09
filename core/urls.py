@@ -47,5 +47,6 @@ urlpatterns = [
     path('bar_graph/', bar_graph_view),
 
     path('weather/', current_weather_view),
-    path('weather_inference/', weather_inference_view),
+    path('weekly_weather/', weekly_weather_inference_view),
+    path('daily_weather/', daily_weather_inference_view),
 ]

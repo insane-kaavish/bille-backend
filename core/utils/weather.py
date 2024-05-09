@@ -91,6 +91,7 @@ def get_weekly_weather_inference(weather_forecast):
     pleasant_days = 0
     hot_days = 0
     humid_days = 0
+    high_temp = 0
 
     for day in weather_forecast:
         temp = day['temp']
@@ -108,6 +109,9 @@ def get_weekly_weather_inference(weather_forecast):
         # Check for humid weather (humidity above 60%)
         if humidity > 60:
             humid_days += 1
+            
+        if temp > high_temp:
+            high_temp = temp
 
     inference = "Based on the upcoming week's forecast: "
     if pleasant_days > hot_days and pleasant_days > humid_days:
@@ -121,7 +125,8 @@ def get_weekly_weather_inference(weather_forecast):
 
     return {
         'title': 'Weekly Weather Prediction',
-        'inference': inference
+        'inference': inference,
+        'high_temp': high_temp
     }
 
 # Compare today's weather with last year's weather
@@ -155,5 +160,7 @@ def compare_weather():
 
         return {
             'title': 'Weather Comparison',
-            'inference': inference
+            'inference': inference,
+            'today_weather': today_weather,
+            'last_year_weather': last_year_weather
         }
