@@ -6,6 +6,7 @@ from .views.appliance_views import *
 from .views.predict_views import *
 from .views.scrape_views import *
 from .views.admin_views import *
+from .views.weather_views import *
 
 urlpatterns = [
     path('', example_view),
@@ -44,4 +45,7 @@ urlpatterns = [
     
     path('forcast/', forcast_view),
     path('bar_graph/', bar_graph_view),
+
+    path('weather/', current_weather_view),
+    path('weather_inference/', weather_inference_view),
 ]
