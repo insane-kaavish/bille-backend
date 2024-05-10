@@ -85,7 +85,8 @@ def wait_for_download(account_no, directory, timeout=300):
         # Check for any .crdownload files in the directory
         if not any(f.endswith('.crdownload') and f.startswith(account_no) for f in os.listdir(directory)):
             # Check if at least one PDF file is present (optional, depending on your case)
-            if any(f.endswith('.pdf') for f in os.listdir(directory)):
+            if any(f.endswith('.pdf') and f.startswith(account_no) for f in os.listdir(directory)):
+                logging.info("Download completed successfully", os.listdir(directory))
                 break
         time.sleep(1)  # Sleep briefly to avoid high CPU usage
         if time.time() > end_time:
@@ -140,10 +141,6 @@ def scrape(account_number):
         last_entry_download_button_xpath = "(//input[@value='Download'])[last()]"
         last_entry_download_button = driver.find_element(By.XPATH, last_entry_download_button_xpath)
         last_entry_download_button.click()
-    except NoSuchElementException:
-        logging.error("Element not found")
-        print("Element not found")
-        return Response({'message': 'Error in web scraping'}, status=501)
     except UnexpectedAlertPresentException:
         try:
             alert = driver.switch_to.alert
@@ -152,6 +149,16 @@ def scrape(account_number):
         except NoAlertPresentException:
             logging.error("No alert present")
         return Response({'message': 'Account number not found'}, status=404)
+    except Exception as e:
+        logging.error("An error occurred: %s", e)
+        driver.save_screenshot(f'error_{account_number}.png')  # Saves a screenshot
+        with open(f'error_{account_number}_page_source.html', 'w') as f:
+            f.write(driver.page_source)  # Saves the page source
+        raise
+    except NoSuchElementException:
+        logging.error("Element not found")
+        print("Element not found")
+        return Response({'message': 'Error in web scraping'}, status=501)
     
     wait_for_download(account_number, os.path.join(os.getcwd(), "bills"))
     
