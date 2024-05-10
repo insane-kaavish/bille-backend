@@ -26,16 +26,19 @@ def weekly_weather_inference_view(request):
 
 # View to get the current weather data vs the historical data
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def daily_weather_inference_view(request):
+    user = request.user
     comparison_data = compare_weather()
-    bill = Bill.objects.filter(is_predicted=False, month=datetime.now().month, year=datetime.now().year).first()
+    bill = Bill.objects.filter(user=user, is_predicted=False, month=datetime.now().month, year=datetime.now().year).first()
     if bill:
         comparison_data['new_bill'] = bill.units
         comparison_data['is_predicted'] = False
     else:
-        comparison_data['new_bill'] = Bill.objects.filter(is_predicted=True, month=datetime.now().month, year=datetime.now().year).first().units
+        comparison_data['new_bill'] = Bill.objects.filter(user=user, is_predicted=True, month=datetime.now().month, year=datetime.now().year).first().units
         comparison_data['is_predicted'] = True
-    bill = Bill.objects.filter(is_predicted=False, month=datetime.now().month, year=datetime.now().year - 1).first()
+    bill = Bill.objects.filter(user=user, is_predicted=False, month=datetime.now().month, year=datetime.now().year - 1).first()
     if bill:
         comparison_data['old_bill'] = bill.units
     if 'error' in comparison_data:
