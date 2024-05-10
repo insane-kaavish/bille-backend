@@ -85,7 +85,11 @@ def wait_for_download(account_no, directory, timeout=300):
         # Check for any .crdownload files in the directory
         if not any(f.endswith('.crdownload') and f.startswith(account_no) for f in os.listdir(directory)):
             # Check if at least one PDF file is present (optional, depending on your case)
-            if any(f.endswith('.pdf') and f.startswith(account_no) for f in os.listdir(directory)):
+            count = 0
+            for f in os.listdir(directory):
+                if f.endswith('.pdf') and f.startswith(account_no):
+                    count += 1
+            if count == 2:
                 logging.info("Download completed successfully", os.listdir(directory))
                 break
         time.sleep(1)  # Sleep briefly to avoid high CPU usage
