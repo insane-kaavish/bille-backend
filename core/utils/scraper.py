@@ -153,16 +153,16 @@ def scrape(account_number):
         except NoAlertPresentException:
             logging.error("No alert present")
         return Response({'message': 'Account number not found'}, status=404)
+    except NoSuchElementException:
+        logging.error("Element not found")
+        print("Element not found")
+        return Response({'message': 'Error in web scraping'}, status=501)
     except Exception as e:
         logging.error("An error occurred: %s", e)
         driver.save_screenshot(f'error_{account_number}.png')  # Saves a screenshot
         with open(f'error_{account_number}_page_source.html', 'w') as f:
             f.write(driver.page_source)  # Saves the page source
-        raise
-    except NoSuchElementException:
-        logging.error("Element not found")
-        print("Element not found")
-        return Response({'message': 'Error in web scraping'}, status=501)
+        return Response({'message': 'Error in web scraping'}, status=500)
     
     wait_for_download(account_number, os.path.join(os.getcwd(), "bills"))
     

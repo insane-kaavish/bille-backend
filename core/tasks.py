@@ -12,7 +12,7 @@ def scrape_task(user_id):
     try:
         user = CustomUser.objects.get(id=user_id)
         response = scrape(user.ke_num)
-        if response.status_code == 501:
+        if response.status_code in [500, 501]:
             response = scrape(user.ke_num)
         if response.status_code == 404:
             return {'status': 404, 'message': 'KE number not found'}
